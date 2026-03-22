@@ -947,32 +947,33 @@ export default function Deck() {
       <Sl i={3}>
         <FI><Tag>Why previous attempts failed</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>They solved one problem and created another.</h2></FI>
-        <FI d={200}><div style={{ maxWidth: 700, width: "100%", overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: m ? 11 : 12 }}>
-            <thead>
-              <tr>
-                {["", "Approach", "What broke", "BURST answer"].map((h, i) => (
-                  <th key={i} style={{ textAlign: "left", padding: "10px 12px", color: i === 3 ? B.green : B.gray, fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: 1, borderBottom: `1px solid ${B.dim}22` }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { n: "Worldcoin", approach: "Iris scan → identity", broke: "Biometric data harvested for a token that may fail", burst: "Identity is modular — biometrics, trust graphs, gov ID. Method is replaceable." },
-                { n: "GoodDollar", approach: "DeFi yield → fund UBI", broke: "Yields collapsed 2022. Income vanished.", burst: "BRN accrues from time, not yields. No external dependency." },
-                { n: "Circles UBI", approach: "Personal currencies in trust circles", broke: "Move cities, lose your wealth. Not fungible.", burst: "One universal currency. TRST is transferable anywhere." },
-                { n: "Gov. UBI", approach: "Tax revenue → direct payments", broke: "One election and it disappears.", burst: "Protocol-level. No politician can turn it off." },
-              ].map((row, i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? "rgba(12,15,22,0.5)" : "transparent" }}>
-                  <td style={{ padding: "10px 12px", fontWeight: 700, color: B.white, whiteSpace: "nowrap" }}>{row.n}</td>
-                  <td style={{ padding: "10px 12px", color: B.gray }}>{row.approach}</td>
-                  <td style={{ padding: "10px 12px", color: B.red, fontWeight: 600 }}>{row.broke}</td>
-                  <td style={{ padding: "10px 12px", color: B.green }}>{row.burst}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, maxWidth: 680, width: "100%", textAlign: "left" }}>
+          {[
+            { n: "Worldcoin", approach: "Iris scan → identity", broke: "Biometric data harvested for a token that may fail", burst: "Identity is modular. Method is replaceable." },
+            { n: "GoodDollar", approach: "DeFi yield → fund UBI", broke: "Yields collapsed 2022. Income vanished.", burst: "BRN accrues from time. No external dependency." },
+            { n: "Circles UBI", approach: "Personal currencies in trust circles", broke: "Move cities, lose your wealth. Not fungible.", burst: "One universal currency. Transferable anywhere." },
+            { n: "Gov. UBI", approach: "Tax revenue → direct payments", broke: "One election and it disappears.", burst: "Protocol-level. No politician can turn it off." },
+          ].map((row, i) => (
+            <FI key={i} d={200 + i * 100}>
+              <GlassCard accent={B.red} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${B.red}33` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: B.white }}>{row.n}</span>
+                  <span style={{ fontSize: 10, color: B.muted, fontFamily: "'JetBrains Mono', monospace" }}>{row.approach}</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <div style={{ padding: "8px 10px", borderRadius: 8, background: `${B.red}08`, borderLeft: `2px solid ${B.red}33` }}>
+                    <div style={{ fontSize: 8, fontWeight: 700, color: B.red, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Broke</div>
+                    <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.5 }}>{row.broke}</div>
+                  </div>
+                  <div style={{ padding: "8px 10px", borderRadius: 8, background: `${B.green}08`, borderLeft: `2px solid ${B.green}44` }}>
+                    <div style={{ fontSize: 8, fontWeight: 700, color: B.green, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>BURST</div>
+                    <div style={{ fontSize: 11, color: B.text, lineHeight: 1.5 }}>{row.burst}</div>
+                  </div>
+                </div>
+              </GlassCard>
+            </FI>
+          ))}
+        </div>
       </Sl>
 
       {/* 4: TWO-KNOB INSIGHT */}
