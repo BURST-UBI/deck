@@ -947,33 +947,43 @@ export default function Deck() {
       <Sl i={3}>
         <FI><Tag>Why previous attempts failed</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>They solved one problem and created another.</h2></FI>
-        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, maxWidth: 680, width: "100%", textAlign: "left" }}>
-          {[
-            { n: "Worldcoin", approach: "Iris scan → identity", broke: "Biometric data harvested for a token that may fail", burst: "Identity is modular. Method is replaceable." },
-            { n: "GoodDollar", approach: "DeFi yield → fund UBI", broke: "Yields collapsed 2022. Income vanished.", burst: "BRN accrues from time. No external dependency." },
-            { n: "Circles UBI", approach: "Personal currencies in trust circles", broke: "Move cities, lose your wealth. Not fungible.", burst: "One universal currency. Transferable anywhere." },
-            { n: "Gov. UBI", approach: "Tax revenue → direct payments", broke: "One election and it disappears.", burst: "Protocol-level. No politician can turn it off." },
-          ].map((row, i) => (
-            <FI key={i} d={200 + i * 100}>
-              <GlassCard accent={B.red} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${B.red}33` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: B.white }}>{row.n}</span>
-                  <span style={{ fontSize: 10, color: B.muted, fontFamily: "'JetBrains Mono', monospace" }}>{row.approach}</span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div style={{ padding: "8px 10px", borderRadius: 8, background: `${B.red}08`, borderLeft: `2px solid ${B.red}33` }}>
-                    <div style={{ fontSize: 8, fontWeight: 700, color: B.red, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Broke</div>
-                    <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.5 }}>{row.broke}</div>
-                  </div>
-                  <div style={{ padding: "8px 10px", borderRadius: 8, background: `${B.green}08`, borderLeft: `2px solid ${B.green}44` }}>
-                    <div style={{ fontSize: 8, fontWeight: 700, color: B.green, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>BURST</div>
-                    <div style={{ fontSize: 11, color: B.text, lineHeight: 1.5 }}>{row.burst}</div>
-                  </div>
-                </div>
-              </GlassCard>
-            </FI>
-          ))}
-        </div>
+        <FI d={200}><div style={{ maxWidth: 720, width: "100%", overflowX: "auto", borderRadius: 14, border: `1px solid ${B.dim}18`, background: "rgba(12,15,22,0.5)", backdropFilter: "blur(12px)" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: m ? 11 : 12 }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${B.dim}22` }}>
+                {[
+                  { label: "", align: "left", color: B.gray },
+                  { label: "Approach", align: "left", color: B.gray },
+                  { label: "What broke", align: "center", color: B.red },
+                  { label: "BURST answer", align: "center", color: B.green },
+                ].map((h, i) => (
+                  <th key={i} style={{
+                    textAlign: h.align, padding: m ? "12px 10px" : "14px 16px", color: h.color,
+                    fontWeight: 700, fontSize: 9, textTransform: "uppercase", letterSpacing: 2,
+                  }}>{h.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { n: "Worldcoin", approach: "Iris scan → identity", broke: "Biometric data harvested for a token that may fail", burst: "Identity is modular — biometrics, trust graphs, gov ID. Method is replaceable." },
+                { n: "GoodDollar", approach: "DeFi yield → fund UBI", broke: "Yields collapsed 2022. Income vanished.", burst: "BRN accrues from time, not yields. No external dependency." },
+                { n: "Circles UBI", approach: "Personal currencies in trust circles", broke: "Move cities, lose your wealth. Not fungible.", burst: "One universal currency. TRST is transferable anywhere." },
+                { n: "Gov. UBI", approach: "Tax revenue → direct payments", broke: "One election and it disappears.", burst: "Protocol-level. No politician can turn it off." },
+              ].map((row, i) => (
+                <tr key={i} style={{ borderBottom: i < 3 ? `1px solid ${B.dim}10` : "none", transition: "background .2s" }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = `${B.dim}10`}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <td style={{ padding: m ? "12px 10px" : "14px 16px", fontWeight: 700, color: B.white, whiteSpace: "nowrap", fontSize: m ? 11 : 13 }}>{row.n}</td>
+                  <td style={{ padding: m ? "12px 10px" : "14px 16px", color: B.gray }}>{row.approach}</td>
+                  <td style={{ padding: m ? "12px 10px" : "14px 16px", color: B.red, fontWeight: 600, textAlign: "center" }}>{row.broke}</td>
+                  <td style={{ padding: m ? "12px 10px" : "14px 16px", color: B.green, textAlign: "center" }}>{row.burst}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div></FI>
       </Sl>
 
       {/* 4: TWO-KNOB INSIGHT */}
