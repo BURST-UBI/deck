@@ -1070,41 +1070,28 @@ export default function Deck() {
         <FI d={550}><LiveBRN active={s === 7} /></FI>
       </Sl>
 
-      {/* 8: TOKENOMICS — flow diagram */}
+      {/* 8: TOKENOMICS — transaction story */}
       <Sl i={8}>
-        <FI><Tag>How the money flows</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: m ? 16 : 28 }}>Follow one hour of being human.</h2></FI>
-        <FI d={200}><div style={{ maxWidth: 500, width: "100%", position: "relative" }}>
-          {/* Flow steps */}
+        <FI><Tag>How the money works</Tag></FI>
+        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>Maria lives in Lisbon. She's verified.</h2></FI>
+        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>Here's what her Tuesday looks like.</p></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, maxWidth: 600, width: "100%", textAlign: "left" }}>
           {[
-            { icon: "⏱️", label: "You exist for 1 hour", sub: "The protocol sees you're verified", color: B.muted, arrow: true },
-            { icon: "➕", label: "+1 BRN appears in your wallet", sub: "Not minted. A counter that ticked up. Equal for every human on earth.", color: B.orange, arrow: true },
-            { icon: "🛒", label: "You buy coffee for 1 BRN", sub: "Your BRN is destroyed. Gone forever.", color: B.orange, arrow: true },
-            { icon: "☕", label: "The café receives 1 TRST", sub: "Created at the moment of your spend. Proof someone paid them for something real.", color: B.blue, arrow: true },
-            { icon: "🔄", label: "TRST slowly decays over 100 years", sub: "Loses value linearly. Can't hoard forever. Wealth circulates back.", color: B.blue, arrow: true },
-            { icon: "📊", label: "Total money supply = total real spending", sub: "No printing. No inflation. The economy measures itself.", color: B.green, arrow: false },
+            { time: "8:00 AM", event: "Maria wakes up. She's earned 8 BRN overnight.", detail: "BRN accrues at 1/hour for every verified human. It's not minted — it's a counter that ticked up.", color: B.orange },
+            { time: "9:15 AM", event: "She buys bread for 2 BRN.", detail: "Her 2 BRN are destroyed. The bakery receives 2 TRST — created at that moment, 1:1.", color: B.blue },
+            { time: "12:00 PM", event: "The bakery pays a farmer 1 TRST for flour.", detail: "TRST is real money. Transferable. The farmer can spend it, save it, or pay someone else.", color: B.blue },
+            { time: "6:00 PM", event: "Maria has 22 BRN. She'll never hit zero.", detail: "Even if she spends everything, tomorrow she earns 24 more. The floor is permanent.", color: B.green },
           ].map((step, i) => (
-            <FI key={i} d={250 + i * 120}>
-              <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                {/* Vertical line + dot */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, width: 32 }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16, background: `${step.color}15`, border: `1px solid ${step.color}33`,
-                  }}>{step.icon}</div>
-                  {step.arrow && <div style={{ width: 1, height: 20, background: `linear-gradient(to bottom, ${step.color}44, transparent)`, margin: "2px 0" }} />}
-                </div>
-                {/* Text */}
-                <div style={{ paddingTop: 4, paddingBottom: step.arrow ? 4 : 0, textAlign: "left" }}>
-                  <div style={{ fontSize: m ? 14 : 16, fontWeight: 700, color: step.color, lineHeight: 1.3 }}>{step.label}</div>
-                  <div style={{ fontSize: m ? 11 : 12, color: B.gray, lineHeight: 1.5, marginTop: 3 }}>{step.sub}</div>
-                </div>
-              </div>
+            <FI key={i} d={300 + i * 120}>
+              <GlassCard accent={step.color} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${step.color}` }}>
+                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: step.color, marginBottom: 6 }}>{step.time}</div>
+                <div style={{ fontSize: m ? 13 : 14, fontWeight: 700, color: B.white, lineHeight: 1.4, marginBottom: 8 }}>{step.event}</div>
+                <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>{step.detail}</div>
+              </GlassCard>
             </FI>
           ))}
-        </div></FI>
-        {/* Key numbers row at bottom */}
-        <FI d={1000}><div style={{ display: "flex", gap: m ? 12 : 24, justifyContent: "center", marginTop: m ? 12 : 20, flexWrap: "wrap" }}>
+        </div>
+        <FI d={900}><div style={{ display: "flex", gap: m ? 12 : 24, justifyContent: "center", marginTop: m ? 12 : 20, flexWrap: "wrap" }}>
           {[
             { n: "1 BRN/hr", l: "accrual rate", c: B.orange },
             { n: "1:1", l: "BRN → TRST", c: B.blue },
