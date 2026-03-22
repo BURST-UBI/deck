@@ -1320,34 +1320,42 @@ export default function Deck() {
       {/* 17: ROADMAP */}
       <Sl i={17}>
         <FI><Tag>Where we are</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 28 }}>Built, running, open.</h2></FI>
-        <div style={{ maxWidth: 540, width: "100%", textAlign: "left" }}>
+        <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Built, running, open.</h2></FI>
+        {/* Progress bar */}
+        <FI d={180}><div style={{ maxWidth: 600, width: "100%", marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: B.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
+            <span>Protocol</span><span>Testnet</span><span>Wallet</span><span>Pilots</span><span>Mainnet</span>
+          </div>
+          <div style={{ height: 6, background: `${B.dim}15`, borderRadius: 3, overflow: "hidden", position: "relative" }}>
+            <div style={{ height: "100%", width: "45%", borderRadius: 3, background: `linear-gradient(90deg, ${B.green}, ${B.orange})`, boxShadow: `0 0 12px ${B.green}33` }} />
+          </div>
+        </div></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr 1fr", gap: 12, maxWidth: 680, width: "100%", textAlign: "left" }}>
           {[
             { phase: "Protocol", status: "Complete", detail: "Full Rust implementation. Block lattice, BRN/TRST engine, merger graph, governance, verification.", color: B.green, done: true },
             { phase: "Testnet", status: "Live", detail: "5+ nodes running. Faucet enabled. Governance cycles tested with shortened parameters.", color: B.green, done: true },
-            { phase: "Wallet & CLI", status: "In progress", detail: "JSON-RPC, WebSocket subscriptions, cross-platform node installer (Linux, macOS, Windows).", color: B.orange, done: false },
-            { phase: "Community pilots", status: "Next", detail: "Small groups choosing their own r and e. Real economic activity. Real feedback loop.", color: B.blue, done: false },
-            { phase: "Mainnet", status: "After pilots", detail: "Bootstrap threshold: 50 verified wallets. Then the network is self-sustaining.", color: B.muted, done: false },
+            { phase: "Wallet & CLI", status: "Building", detail: "JSON-RPC, WebSocket subscriptions, cross-platform installer.", color: B.orange, done: false },
+            { phase: "Community pilots", status: "Next", detail: "Small groups choosing their own r and e. Real economic activity.", color: B.blue, done: false },
+            { phase: "Mainnet", status: "After pilots", detail: "Bootstrap threshold: 50 verified wallets. Self-sustaining.", color: B.muted, done: false },
           ].map((p, i) => (
-            <FI key={i} d={200 + i * 100}>
-              <div style={{ display: "flex", gap: 16, marginBottom: i < 4 ? 4 : 0 }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, width: 32 }}>
-                  <div style={{
-                    width: 12, height: 12, borderRadius: "50%", marginTop: 4,
-                    background: p.done ? p.color : "transparent",
-                    border: p.done ? "none" : `2px solid ${p.color}`,
-                    boxShadow: p.done ? `0 0 12px ${p.color}44` : "none",
-                  }} />
-                  {i < 4 && <div style={{ flex: 1, width: 1, background: `linear-gradient(to bottom, ${p.color}44, transparent)`, margin: "4px 0", minHeight: 16 }} />}
+            <FI key={i} d={250 + i * 80}>
+              <GlassCard accent={p.color} style={{
+                padding: "18px 20px", height: "100%",
+                borderTop: `3px solid ${p.done ? p.color : p.color + "44"}`,
+                opacity: p.done ? 1 : 0.75,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: p.color }}>{p.phase}</span>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase",
+                    padding: "3px 10px", borderRadius: 6,
+                    color: p.done ? B.bg : p.color,
+                    background: p.done ? p.color : `${p.color}15`,
+                    border: p.done ? "none" : `1px solid ${p.color}33`,
+                  }}>{p.status}</span>
                 </div>
-                <div style={{ paddingBottom: 14 }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: p.color }}>{p.phase}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: p.done ? B.green : B.muted, textTransform: "uppercase", letterSpacing: 1 }}>{p.status}</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: B.gray, lineHeight: 1.6, marginTop: 4 }}>{p.detail}</div>
-                </div>
-              </div>
+                <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>{p.detail}</div>
+              </GlassCard>
             </FI>
           ))}
         </div>
