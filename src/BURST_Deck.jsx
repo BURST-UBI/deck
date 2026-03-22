@@ -972,33 +972,57 @@ export default function Deck() {
         <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
           <FI><Tag>The breakthrough</Tag></FI>
           <FI d={200}><h2 style={{ ...H(46), color: B.white, marginBottom: 14 }}>What if money is just a<br /><span style={{ color: B.green, textShadow: `0 0 40px ${B.green}22` }}>two-knob machine</span>?</h2></FI>
-          <FI d={450}><p style={{ ...P, textAlign: "center", margin: "0 auto 24px", maxWidth: 500 }}>
-            One knob controls how much everyone gets. The other controls how long wealth lasts. Turn both to zero — you get Bitcoin. Turn them up — you get UBI.
+          <FI d={450}><p style={{ ...P, textAlign: "center", margin: "0 auto 28px", maxWidth: 500 }}>
+            One knob controls how much everyone earns. The other controls how long wealth lasts.
           </p></FI>
-          <FI d={650}><div style={{ display: "flex", justifyContent: "center", gap: m ? 16 : 32, flexWrap: "wrap", marginTop: 24, alignItems: "stretch" }}>
-            <GlassCard accent={B.orange} style={{ padding: m ? "16px 24px" : "24px 36px", textAlign: "center", flex: "0 0 auto" }}>
-              <div style={{ fontSize: m ? 36 : 54, fontWeight: 800, color: B.orange, fontFamily: "'JetBrains Mono', monospace" }}>r</div>
-              <div style={{ fontSize: m ? 10 : 11, color: B.gray, marginTop: 4 }}>income rate</div>
-              <div style={{ fontSize: 9, color: B.muted, marginTop: 8 }}>0 = no income<br />max = full UBI</div>
-            </GlassCard>
-            <GlassCard accent={B.blue} style={{ padding: m ? "16px 24px" : "24px 36px", textAlign: "center", flex: "0 0 auto" }}>
-              <div style={{ fontSize: m ? 36 : 54, fontWeight: 800, color: B.blue, fontFamily: "'JetBrains Mono', monospace" }}>e</div>
-              <div style={{ fontSize: m ? 10 : 11, color: B.gray, marginTop: 4 }}>expiry period</div>
-              <div style={{ fontSize: 9, color: B.muted, marginTop: 8 }}>∞ = permanent wealth<br />low = wealth cycles</div>
-            </GlassCard>
+          {/* Two parameter cards with gradient bar connecting them */}
+          <FI d={650}><div style={{ position: "relative", maxWidth: 560, margin: "0 auto" }}>
+            {/* Connecting gradient line */}
+            {!m && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 60, height: 2, background: `linear-gradient(90deg, ${B.orange}44, ${B.blue}44)`, zIndex: 0 }} />}
+            <div style={{ display: "flex", justifyContent: "center", gap: m ? 14 : 24, flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+              {[
+                { param: "r", label: "income rate", color: B.orange, lo: "no floor", hi: "full UBI", desc: "How much BRN every human earns per hour" },
+                { param: "e", label: "expiry period", color: B.blue, lo: "cycles fast", hi: "lasts forever", desc: "How long TRST stays valuable before it decays" },
+              ].map((k, i) => (
+                <div key={i} style={{
+                  flex: m ? "1 1 100%" : "1 1 0", padding: m ? "20px" : "28px 24px",
+                  background: `linear-gradient(135deg, rgba(12,15,22,0.9), ${k.color}08)`,
+                  borderRadius: 16, border: `1px solid ${k.color}22`,
+                  textAlign: "center", position: "relative", overflow: "hidden",
+                }}>
+                  {/* Subtle glow */}
+                  <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle, ${k.color}08, transparent 70%)`, pointerEvents: "none" }} />
+                  <div style={{ fontSize: m ? 48 : 64, fontWeight: 800, color: k.color, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1, position: "relative" }}>{k.param}</div>
+                  <div style={{ fontSize: 13, color: B.white, fontWeight: 600, marginTop: 8 }}>{k.label}</div>
+                  <div style={{ fontSize: 11, color: B.gray, marginTop: 6, lineHeight: 1.5 }}>{k.desc}</div>
+                  {/* Range indicator */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, justifyContent: "center" }}>
+                    <span style={{ fontSize: 9, color: B.muted }}>{k.lo}</span>
+                    <div style={{ flex: 1, maxWidth: 80, height: 3, borderRadius: 2, background: `linear-gradient(90deg, ${k.color}22, ${k.color})` }} />
+                    <span style={{ fontSize: 9, color: k.color, fontWeight: 600 }}>{k.hi}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div></FI>
-          <FI d={850}><div style={{ display: "flex", gap: m ? 10 : 16, justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
-            {[
-              { r: "0", e: "∞", label: "Bitcoin", c: B.muted },
-              { r: "low", e: "∞", label: "Capitalism + floor", c: B.green },
-              { r: "high", e: "medium", label: "Balanced economy", c: B.blue },
-              { r: "high", e: "low", label: "Pure equality", c: B.purple },
-            ].map((ex, i) => (
-              <div key={i} style={{ fontSize: 10, padding: "6px 12px", borderRadius: 8, background: `${ex.c}10`, border: `1px solid ${ex.c}22`, color: ex.c, textAlign: "center" }}>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>r={ex.r} e={ex.e}</span>
-                <span style={{ color: B.gray, marginLeft: 6 }}>{ex.label}</span>
-              </div>
-            ))}
+          {/* Configuration examples as a visual spectrum */}
+          <FI d={900}><div style={{ maxWidth: 520, margin: "24px auto 0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 2, marginBottom: 8 }}>
+              <div style={{ flex: 1, height: 3, borderRadius: 2, background: `linear-gradient(90deg, ${B.muted}, ${B.green}, ${B.blue}, ${B.purple})` }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              {[
+                { label: "Bitcoin", sub: "r=0, e=∞", c: B.muted },
+                { label: "UBI floor", sub: "r>0, e=∞", c: B.green },
+                { label: "Balanced", sub: "r>0, e=med", c: B.blue },
+                { label: "Equality", sub: "r=max, e=low", c: B.purple },
+              ].map((ex, i) => (
+                <div key={i} style={{ textAlign: "center", flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: ex.c }}>{ex.label}</div>
+                  <div style={{ fontSize: 9, color: B.muted, fontFamily: "'JetBrains Mono', monospace", marginTop: 2 }}>{ex.sub}</div>
+                </div>
+              ))}
+            </div>
           </div></FI>
         </div>
       </Sl>
