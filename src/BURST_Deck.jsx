@@ -969,39 +969,27 @@ export default function Deck() {
 
       {/* 4: TWO-KNOB INSIGHT */}
       <Sl i={4}>
-        <div style={{ textAlign: "center", maxWidth: 700, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
           <FI><Tag>The breakthrough</Tag></FI>
-          <FI d={200}><h2 style={{ ...H(44), color: B.white, marginBottom: 20 }}>Every economy is just<br /><span style={{ color: B.green, textShadow: `0 0 40px ${B.green}22` }}>two decisions</span></h2></FI>
-
-          <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: m ? 16 : 20, maxWidth: 600, margin: "0 auto", textAlign: "left" }}>
-            <FI d={450}><GlassCard accent={B.orange} style={{ padding: "24px", borderTop: `3px solid ${B.orange}` }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: B.orange, marginBottom: 10 }}>How much does everyone get?</div>
-              <div style={{ fontSize: 13, color: B.text, lineHeight: 1.7, marginBottom: 14 }}>
-                Right now, the answer is nothing. Zero. You're born, you get no economic floor. What if every person earned a small income just for being alive?
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: B.muted }}>
-                <span>Nothing</span>
-                <span style={{ color: B.orange, fontWeight: 600 }}>Universal income</span>
-              </div>
-              <div style={{ height: 4, borderRadius: 2, marginTop: 6, background: `linear-gradient(90deg, ${B.dim}44, ${B.orange})` }} />
-            </GlassCard></FI>
-
-            <FI d={600}><GlassCard accent={B.blue} style={{ padding: "24px", borderTop: `3px solid ${B.blue}` }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: B.blue, marginBottom: 10 }}>How long does wealth last?</div>
-              <div style={{ fontSize: 13, color: B.text, lineHeight: 1.7, marginBottom: 14 }}>
-                Right now, forever. Wealth compounds at the top and stays there across generations. What if money slowly expired, cycling back into the economy?
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: B.muted }}>
-                <span>Cycles back</span>
-                <span style={{ color: B.blue, fontWeight: 600 }}>Lasts forever</span>
-              </div>
-              <div style={{ height: 4, borderRadius: 2, marginTop: 6, background: `linear-gradient(90deg, ${B.blue}, ${B.dim}44)` }} />
-            </GlassCard></FI>
-          </div>
-
-          <FI d={800}><p style={{ fontSize: 14, color: B.gray, marginTop: 24, lineHeight: 1.7, maxWidth: 500, margin: "24px auto 0" }}>
-            Set both to zero — you get Bitcoin. Turn up income — you get a safety net. Add expiry — wealth circulates. <span style={{ color: B.green, fontWeight: 700 }}>Every economic model is a position on these two dials.</span>
+          <FI d={200}><h2 style={{ ...H(46), color: B.white, marginBottom: 14 }}>What if money is just a<br /><span style={{ color: B.green, textShadow: `0 0 40px ${B.green}22` }}>two-knob machine</span>?</h2></FI>
+          <FI d={450}><p style={{ ...P, textAlign: "center", margin: "0 auto 24px", maxWidth: 500 }}>
+            One knob controls how much everyone gets. The other controls how long wealth lasts. Turn both to zero — you get Bitcoin. Turn them up — you get UBI.
           </p></FI>
+          <FI d={650}><div style={{ display: "flex", justifyContent: "center", gap: m ? 14 : 36, flexWrap: "wrap", marginTop: 24, alignItems: "center" }}>
+            <GlassCard accent={B.orange} style={{ padding: m ? "16px 24px" : "24px 36px", textAlign: "center" }}>
+              <div style={{ fontSize: m ? 36 : 54, fontWeight: 800, color: B.orange, fontFamily: "'JetBrains Mono', monospace" }}>r</div>
+              <div style={{ fontSize: m ? 10 : 11, color: B.gray, marginTop: 4 }}>income rate</div>
+            </GlassCard>
+            <div style={{ fontSize: m ? 20 : 28, color: B.dim, fontWeight: 300 }}>+</div>
+            <GlassCard accent={B.blue} style={{ padding: m ? "16px 24px" : "24px 36px", textAlign: "center" }}>
+              <div style={{ fontSize: m ? 36 : 54, fontWeight: 800, color: B.blue, fontFamily: "'JetBrains Mono', monospace" }}>e</div>
+              <div style={{ fontSize: m ? 10 : 11, color: B.gray, marginTop: 4 }}>expiry period</div>
+            </GlassCard>
+            <div style={{ fontSize: m ? 20 : 28, color: B.dim, fontWeight: 300 }}>→</div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: m ? 20 : 32, fontWeight: 800, color: B.green, textShadow: `0 0 40px ${B.green}33` }}>every economy</div>
+            </div>
+          </div></FI>
         </div>
       </Sl>
 
