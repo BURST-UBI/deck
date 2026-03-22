@@ -840,6 +840,7 @@ export default function Deck() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::selection { background: ${B.green}44; }
         @keyframes sIn { from { opacity: 0; transform: translateY(var(--dy, 24px)); } to { opacity: 1; transform: none; } }
+        @keyframes revealUp { from { opacity: 0; transform: translateY(40px) scale(0.96); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .03; } 50% { transform: scale(1.15); opacity: .08; } }
@@ -886,23 +887,30 @@ export default function Deck() {
             <span style={{ color: B.gray }}>They all share one invisible assumption.</span>
           </p></FI>
           {hp >= 1 && (
-            <div style={{ animation: "sIn 1s both", marginTop: 40 }}>
+            <div style={{ marginTop: 40 }}>
               <p style={{
                 fontSize: "clamp(34px, 5.5vw, 68px)", fontWeight: 800, color: B.green,
                 lineHeight: 1.08, fontFamily: "'Sora', sans-serif",
                 textShadow: `0 0 60px ${B.green}22`,
+                animation: "revealUp 1.8s cubic-bezier(.16,1,.3,1) both",
               }}>
                 You start with nothing.
               </p>
               <div style={{
                 width: 80, height: 3, borderRadius: 2, margin: "30px auto 0",
                 background: `linear-gradient(90deg, transparent, ${B.green}, transparent)`,
-                animation: "expandBar .8s .3s both", transformOrigin: "center",
+                animation: "expandBar 1s 1.2s both", transformOrigin: "center",
               }} />
-              <p style={{ fontSize: "clamp(15px, 1.6vw, 21px)", color: B.text, marginTop: 30, fontWeight: 500 }}>
+              <p style={{
+                fontSize: "clamp(15px, 1.6vw, 21px)", color: B.text, marginTop: 30, fontWeight: 500,
+                animation: "revealUp 1.2s cubic-bezier(.16,1,.3,1) 1.8s both",
+              }}>
                 What if that's not a law of nature
               </p>
-              <p style={{ fontSize: "clamp(15px, 1.6vw, 21px)", color: B.gray, marginTop: 6 }}>
+              <p style={{
+                fontSize: "clamp(15px, 1.6vw, 21px)", color: B.gray, marginTop: 6,
+                animation: "revealUp 1.2s cubic-bezier(.16,1,.3,1) 2.4s both",
+              }}>
                 but just a <span style={{ color: B.green, fontWeight: 800, textShadow: `0 0 30px ${B.green}33` }}>parameter</span> someone forgot to set?
               </p>
             </div>
