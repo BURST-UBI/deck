@@ -242,7 +242,7 @@ function BirthLottery({ active, mobile }) {
             {result.pct}
           </div>
           <div style={{ fontSize: mobile ? 9 : 10, textTransform: "uppercase", letterSpacing: mobile ? 3 : 6, color: B.gray, margin: "6px 0 8px" }}>
-            of all humans born into this
+            of all humans
           </div>
           <div style={{ fontSize: mobile ? 16 : 20, fontWeight: 800, color: result.color, marginBottom: 8 }}>
             {result.label}
