@@ -975,20 +975,30 @@ export default function Deck() {
           <FI d={450}><p style={{ ...P, textAlign: "center", margin: "0 auto 24px", maxWidth: 500 }}>
             One knob controls how much everyone gets. The other controls how long wealth lasts. Turn both to zero — you get Bitcoin. Turn them up — you get UBI.
           </p></FI>
-          <FI d={650}><div style={{ display: "flex", justifyContent: "center", gap: m ? 14 : 36, flexWrap: "wrap", marginTop: 24, alignItems: "center" }}>
-            <GlassCard accent={B.orange} style={{ padding: m ? "16px 24px" : "24px 36px", textAlign: "center" }}>
+          <FI d={650}><div style={{ display: "flex", justifyContent: "center", gap: m ? 16 : 32, flexWrap: "wrap", marginTop: 24, alignItems: "stretch" }}>
+            <GlassCard accent={B.orange} style={{ padding: m ? "16px 24px" : "24px 36px", textAlign: "center", flex: "0 0 auto" }}>
               <div style={{ fontSize: m ? 36 : 54, fontWeight: 800, color: B.orange, fontFamily: "'JetBrains Mono', monospace" }}>r</div>
               <div style={{ fontSize: m ? 10 : 11, color: B.gray, marginTop: 4 }}>income rate</div>
+              <div style={{ fontSize: 9, color: B.muted, marginTop: 8 }}>0 = no income<br />max = full UBI</div>
             </GlassCard>
-            <div style={{ fontSize: m ? 24 : 38, color: B.dim }}>{"×"}</div>
-            <GlassCard accent={B.blue} style={{ padding: m ? "16px 24px" : "24px 36px", textAlign: "center" }}>
+            <GlassCard accent={B.blue} style={{ padding: m ? "16px 24px" : "24px 36px", textAlign: "center", flex: "0 0 auto" }}>
               <div style={{ fontSize: m ? 36 : 54, fontWeight: 800, color: B.blue, fontFamily: "'JetBrains Mono', monospace" }}>e</div>
               <div style={{ fontSize: m ? 10 : 11, color: B.gray, marginTop: 4 }}>expiry period</div>
+              <div style={{ fontSize: 9, color: B.muted, marginTop: 8 }}>∞ = permanent wealth<br />low = wealth cycles</div>
             </GlassCard>
-            <div style={{ fontSize: m ? 24 : 38, color: B.dim }}>=</div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: m ? 24 : 38, fontWeight: 800, color: B.green, textShadow: `0 0 40px ${B.green}33` }}>every economy</div>
-            </div>
+          </div></FI>
+          <FI d={850}><div style={{ display: "flex", gap: m ? 10 : 16, justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
+            {[
+              { r: "0", e: "∞", label: "Bitcoin", c: B.muted },
+              { r: "low", e: "∞", label: "Capitalism + floor", c: B.green },
+              { r: "high", e: "medium", label: "Balanced economy", c: B.blue },
+              { r: "high", e: "low", label: "Pure equality", c: B.purple },
+            ].map((ex, i) => (
+              <div key={i} style={{ fontSize: 10, padding: "6px 12px", borderRadius: 8, background: `${ex.c}10`, border: `1px solid ${ex.c}22`, color: ex.c, textAlign: "center" }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>r={ex.r} e={ex.e}</span>
+                <span style={{ color: B.gray, marginLeft: 6 }}>{ex.label}</span>
+              </div>
+            ))}
           </div></FI>
         </div>
       </Sl>
