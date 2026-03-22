@@ -388,8 +388,19 @@ function Spectrum({ active, mobile }) {
         </div>
         <div style={{ fontSize: 14, color: B.text, lineHeight: 1.8 }}>{model.desc}</div>
       </GlassCard>
-      <div style={{ textAlign: "center", marginTop: 16, fontSize: 11, color: B.muted }}>
-        Every position is valid. The community votes. Any choice is reversible.
+      {/* Real-world anchor */}
+      <div style={{ textAlign: "center", marginTop: 16, padding: "12px 16px", background: `${B.dim}08`, borderRadius: 10, transition: "all .4s" }}>
+        <div style={{ fontSize: 12, color: B.text, lineHeight: 1.7 }}>
+          {r > 0 ? (
+            <>At <span style={{ color: B.orange, fontWeight: 700 }}>r={r}%</span>{e <= 90 ? <>, <span style={{ color: B.green, fontWeight: 700 }}>e={eLabel}</span></> : null}:&nbsp;
+            {r >= 50 ? "A garment worker in Bangladesh gets a floor of " : r >= 20 ? "A subsistence farmer in the DRC gets a floor of " : "A brick kiln worker in India gets a floor of "}
+            <span style={{ color: B.orange, fontWeight: 700 }}>€{(r * 0.46).toFixed(0)}/day</span>.
+            {e <= 70 ? <> A billionaire's TRST decays <span style={{ color: B.blue, fontWeight: 700 }}>{(100 / Math.max(e, 1)).toFixed(1)}%/year</span>.</> : null}
+            </>
+          ) : (
+            <span style={{ color: B.muted }}>This is the world today. No floor. No ceiling. Drag the income knob to change it.</span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -576,6 +587,26 @@ function FraudViz({ active, mobile }) {
           </div>
         ))}
       </div>
+
+      {/* "So what" comparison — appears after animation */}
+      <div style={{
+        marginTop: 12, display: "flex", gap: mobile ? 6 : 10, justifyContent: "center", flexWrap: "wrap",
+        opacity: step >= 7 ? 1 : 0, transform: step >= 7 ? "translateY(0)" : "translateY(8px)",
+        transition: "all 1.2s cubic-bezier(.25,.46,.45,.94)", transitionDelay: "400ms",
+      }}>
+        {[
+          { chain: "Bitcoin", verdict: "Can trace. Can't revoke.", color: B.orange },
+          { chain: "Ethereum", verdict: "Can freeze. Can't split.", color: B.blue },
+          { chain: "BURST", verdict: "Surgical. Proportional. O(k).", color: B.green },
+        ].map((c, i) => (
+          <div key={i} style={{
+            padding: "6px 12px", borderRadius: 8, fontSize: mobile ? 9 : 10, fontWeight: 700,
+            background: `${c.color}10`, border: `1px solid ${c.color}22`, color: c.color,
+          }}>
+            <span style={{ color: B.gray }}>{c.chain}:</span> {c.verdict}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -618,16 +649,110 @@ function TxFlow({ active, mobile }) {
   );
 }
 
+/* --- Year 1 Simulation --- */
+function Year1Sim({ active, mobile }) {
+  const [month, setMonth] = useState(0);
+  useEffect(() => {
+    if (!active) { setMonth(0); return; }
+    let m = 0;
+    const id = setInterval(() => { m++; setMonth(m); if (m >= 12) clearInterval(id); }, 800);
+    return () => clearInterval(id);
+  }, [active]);
+
+  const data = useMemo(() => {
+    // 1000 people, 1 BRN/hr, gradually spending, economy bootstrapping
+    const months = [];
+    let users = 0, totalBrn = 0, totalTrst = 0, txCount = 0;
+    for (let i = 0; i <= 12; i++) {
+      // Staggered joins: ~80/month first 6 months, then word spreads
+      users = Math.min(1000, Math.round(i < 6 ? i * 83 : 500 + (i - 6) * 83));
+      // Each user accrues 720 BRN/month (1/hr × 24 × 30)
+      totalBrn = users * 720 * (i + 1) * 0.5; // average half-month accrual
+      // Spending increases as economy develops: 5% month 1 → 40% month 12
+      const spendRate = Math.min(0.4, 0.05 + i * 0.03);
+      totalTrst += users * 720 * spendRate;
+      txCount += Math.round(users * spendRate * 30);
+      months.push({ users, brn: Math.round(totalBrn), trst: Math.round(totalTrst), tx: txCount });
+    }
+    return months;
+  }, []);
+
+  if (!active) return null;
+  const d = data[Math.min(month, 12)];
+  const pct = month / 12;
+
+  const fmt = (n) => n >= 1000000 ? (n / 1000000).toFixed(1) + "M" : n >= 1000 ? (n / 1000).toFixed(0) + "K" : String(n);
+
+  const Bar = ({ label, value, max, color }) => (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
+        <span style={{ color: B.gray, fontWeight: 600 }}>{label}</span>
+        <span style={{ color, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>{fmt(value)}</span>
+      </div>
+      <div style={{ height: 8, background: `${B.dim}22`, borderRadius: 4, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${Math.min(100, (value / max) * 100)}%`, background: `linear-gradient(90deg, ${color}88, ${color})`, borderRadius: 4, transition: "width .6s cubic-bezier(.16,1,.3,1)" }} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 520, width: "100%", textAlign: "left" }}>
+      {/* Month indicator */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <div style={{ fontSize: mobile ? 28 : 36, fontWeight: 800, color: B.green, fontFamily: "'JetBrains Mono', monospace" }}>
+          Month {Math.min(month, 12)}
+        </div>
+        <div style={{ flex: 1, height: 4, background: `${B.dim}22`, borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ height: "100%", width: `${pct * 100}%`, background: B.green, borderRadius: 2, transition: "width .6s" }} />
+        </div>
+      </div>
+
+      <Bar label="Verified users" value={d.users} max={1000} color={B.green} />
+      <Bar label="BRN accrued (total)" value={d.brn} max={data[12].brn} color={B.orange} />
+      <Bar label="TRST in circulation" value={d.trst} max={data[12].trst} color={B.blue} />
+      <Bar label="Transactions" value={d.tx} max={data[12].tx} color={B.green} />
+
+      {/* Milestone callouts */}
+      <div style={{ marginTop: 16, minHeight: 44 }}>
+        {[
+          { at: 0, text: "Network launches. First wallets verify each other.", color: B.muted },
+          { at: 2, text: "200 users. First real purchases. TRST begins circulating.", color: B.blue },
+          { at: 5, text: "500 users. Local businesses start accepting TRST.", color: B.orange },
+          { at: 8, text: "800 users. Governance proposals appear. Community sets parameters.", color: B.green },
+          { at: 12, text: "1,000 users. Self-sustaining economy. The floor is real.", color: B.green },
+        ].map((m, i) => (
+          <div key={i} style={{
+            position: i === 0 ? "relative" : "absolute",
+            opacity: month >= m.at && (i === 4 || month < ([ 2, 5, 8, 12, 99 ][i + 1] || 99)) ? 1 : 0,
+            transition: "opacity .6s",
+            fontSize: 12, color: m.color, fontWeight: 600, lineHeight: 1.5,
+          }}>
+            {m.text}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ====== MAIN DECK ====== */
+const SLIDE_TITLES = [
+  "Birth lottery", "BURST", "The assumption", "The scale", "Previous attempts",
+  "Two-knob machine", "Try it yourself", "Architecture", "How money flows", "Year one",
+  "Why it works", "Adoption strategy", "Identity", "Fraud detection",
+  "Governance", "Consensus", "Infrastructure", "Roadmap", "Team", "Join the build", "Closing",
+];
+
 export default function Deck() {
   const [s, setS] = useState(0);
   const [hp, setHp] = useState(0);
+  const [menu, setMenu] = useState(false);
   const m = useIsMobile();
-  const TOTAL = 20;
+  const TOTAL = 21;
   const touchRef = useRef(null);
 
   const next = useCallback(() => {
-    if (s === 1 && hp < 1) { setHp((p) => p + 1); return; }
+    if (s === 2 && hp < 1) { setHp((p) => p + 1); return; }
     setS((p) => Math.min(p + 1, TOTAL - 1));
     setHp(0);
   }, [s, hp]);
@@ -639,6 +764,8 @@ export default function Deck() {
 
   useEffect(() => {
     const handler = (ev) => {
+      if (ev.key === "?" || ev.key === "Escape") { ev.preventDefault(); setMenu((p) => !p); return; }
+      if (menu) return;
       if (["ArrowRight", " ", "Enter"].includes(ev.key)) { ev.preventDefault(); next(); }
       if (["ArrowLeft", "Backspace"].includes(ev.key)) { ev.preventDefault(); prev(); }
     };
@@ -710,7 +837,6 @@ export default function Deck() {
       onTouchEnd={onTouchEnd}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::selection { background: ${B.green}44; }
         @keyframes sIn { from { opacity: 0; transform: translateY(var(--dy, 24px)); } to { opacity: 1; transform: none; } }
@@ -740,13 +866,24 @@ export default function Deck() {
         <Particles />
       </div>
 
-      {/* 0: TITLE */}
+      {/* 0: BIRTH LOTTERY — the hook */}
       <Sl i={0}>
+        <div style={{ textAlign: "center", maxWidth: 600, margin: "0 auto" }}>
+          <FI><h2 style={{ ...H(42), color: B.white, marginBottom: 14 }}>Where you're born decides everything</h2></FI>
+          <FI d={150}><p style={{ ...P, textAlign: "center", margin: "0 auto 40px", maxWidth: 440 }}>
+            Your economic life was determined by a dice roll you never made.
+          </p></FI>
+          <BirthLottery active={s === 0} mobile={m} />
+        </div>
+      </Sl>
+
+      {/* 1: TITLE */}
+      <Sl i={1}>
         <FI d={0}><Tag>Protocol Whitepaper</Tag></FI>
         <FI d={200}><h1 style={{ ...H(90), color: B.green, textShadow: `0 0 80px ${B.green}22` }}>BURST</h1></FI>
         <FI d={400}><h2 style={{ ...H(30), color: B.white, fontWeight: 600, marginTop: 10 }}>The General Form of Money</h2></FI>
         <FI d={600}><p style={{ ...P, marginTop: 22, maxWidth: 520, color: B.gray }}>Two parameters. Every economic model from capitalism to UBI as a democratic configuration.</p></FI>
-        <FI d={900}><div style={{ display: "flex", gap: 8, marginTop: 36, flexWrap: "wrap" }}>
+        <FI d={900}><div style={{ display: "flex", gap: 8, marginTop: 36, flexWrap: "wrap", justifyContent: "center" }}>
           {["MIT License", "No token sale", "No pre-mine", "No founder allocation", "Open source Rust"].map((t, i) => (
             <span key={i} style={{
               fontSize: 10, color: B.gray, padding: "7px 16px", borderRadius: 20,
@@ -755,13 +892,10 @@ export default function Deck() {
             }}>{t}</span>
           ))}
         </div></FI>
-        <FI d={1200}><div style={{ marginTop: 48, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 11, color: B.muted, animation: "pulse 2.5s infinite" }}>{m ? "Swipe to navigate" : "Press arrow keys or click to navigate"}</span>
-        </div></FI>
       </Sl>
 
-      {/* 1: HOOK */}
-      <Sl i={1}>
+      {/* 2: HOOK */}
+      <Sl i={2}>
         <div style={{ textAlign: "center", maxWidth: 740, margin: "0 auto" }}>
           <FI><p style={{ fontSize: "clamp(18px, 2.5vw, 32px)", color: B.text, fontWeight: 400, lineHeight: 1.65, fontFamily: "'Sora', sans-serif" }}>
             Gold. Fiat. Bitcoin. Ethereum. Every currency ever created.
@@ -794,18 +928,6 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 2: BIRTH LOTTERY */}
-      <Sl i={2}>
-        <div style={{ textAlign: "center", maxWidth: 600, margin: "0 auto" }}>
-          <FI><Tag color={B.orange}>The human cost</Tag></FI>
-          <FI d={100}><h2 style={{ ...H(42), color: B.white, marginBottom: 14 }}>Where you're born decides everything</h2></FI>
-          <FI d={250}><p style={{ ...P, textAlign: "center", margin: "0 auto 40px", maxWidth: 440 }}>
-            Your economic life was determined by a dice roll you never made.
-          </p></FI>
-          <BirthLottery active={s === 2} mobile={m} />
-        </div>
-      </Sl>
-
       {/* 3: STATS */}
       <Sl i={3}>
         <FI><Tag color={B.red}>The scale</Tag></FI>
@@ -833,29 +955,33 @@ export default function Deck() {
       {/* 4: COMPETITORS */}
       <Sl i={4}>
         <FI><Tag>Why previous attempts failed</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 28 }}>Each one bet everything on a single idea</h2></FI>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12, maxWidth: 680, width: "100%", textAlign: "left" }}>
-          {[
-            { n: "Worldcoin", what: "Scans your iris for identity", why: "If the token fails, your biometric data was harvested for nothing. Identity and currency are separate systems.", b: "Biometrics" },
-            { n: "Circles UBI", what: "Personal currencies in trust groups", why: "Your money is trapped in your social circle. Move cities — your wealth doesn't follow.", b: "Social trust" },
-            { n: "GoodDollar", what: "DeFi yield funds the UBI", why: "When yields collapsed in 2022, the income dried up. External dependency kills reliability.", b: "DeFi yields" },
-            { n: "Government UBI", what: "Tax-funded direct payments", why: "Requires political will every budget cycle. One election and it disappears.", b: "Political will" },
-          ].map((c, i) => (
-            <FI key={i} d={200 + i * 90}>
-              <GlassCard accent={B.red} style={{ padding: "20px 22px", borderLeft: `3px solid ${B.red}44` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <span style={{ fontWeight: 700, fontSize: 15, color: B.white }}>{c.n}</span>
-                  <span style={{ fontSize: 9, color: B.red, background: B.rd + "33", padding: "4px 12px", borderRadius: 10, fontWeight: 700, letterSpacing: 1 }}>Bet: {c.b}</span>
-                </div>
-                <div style={{ fontSize: 12, color: B.green, marginBottom: 8, fontWeight: 600 }}>{c.what}</div>
-                <div style={{ fontSize: 12, color: B.gray, lineHeight: 1.65 }}>{c.why}</div>
-              </GlassCard>
-            </FI>
-          ))}
-        </div>
-        <FI d={700}><GlassCard accent={B.green} glow style={{ marginTop: 24, padding: "18px 26px", maxWidth: 680 }}>
-          <p style={{ fontSize: 15, color: B.green, fontWeight: 700, margin: 0 }}>BURST doesn't bet. It builds every possible economy as a configuration and lets the community choose.</p>
-        </GlassCard></FI>
+        <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>They solved one problem and created another.</h2></FI>
+        <FI d={200}><div style={{ maxWidth: 700, width: "100%", overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: m ? 11 : 12 }}>
+            <thead>
+              <tr>
+                {["", "Approach", "What broke", "BURST answer"].map((h, i) => (
+                  <th key={i} style={{ textAlign: "left", padding: "10px 12px", color: i === 3 ? B.green : B.gray, fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: 1, borderBottom: `1px solid ${B.dim}22` }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { n: "Worldcoin", approach: "Iris scan → identity", broke: "Biometric data harvested for a token that may fail", burst: "Identity is modular — biometrics, trust graphs, gov ID. Method is replaceable." },
+                { n: "GoodDollar", approach: "DeFi yield → fund UBI", broke: "Yields collapsed 2022. Income vanished.", burst: "BRN accrues from time, not yields. No external dependency." },
+                { n: "Circles UBI", approach: "Personal currencies in trust circles", broke: "Move cities, lose your wealth. Not fungible.", burst: "One universal currency. TRST is transferable anywhere." },
+                { n: "Gov. UBI", approach: "Tax revenue → direct payments", broke: "One election and it disappears.", burst: "Protocol-level. No politician can turn it off." },
+              ].map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? "rgba(12,15,22,0.5)" : "transparent" }}>
+                  <td style={{ padding: "10px 12px", fontWeight: 700, color: B.white, whiteSpace: "nowrap" }}>{row.n}</td>
+                  <td style={{ padding: "10px 12px", color: B.gray }}>{row.approach}</td>
+                  <td style={{ padding: "10px 12px", color: B.red, fontWeight: 600 }}>{row.broke}</td>
+                  <td style={{ padding: "10px 12px", color: B.green }}>{row.burst}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div></FI>
       </Sl>
 
       {/* 5: TWO-KNOB INSIGHT */}
@@ -974,8 +1100,15 @@ export default function Deck() {
         </div></FI>
       </Sl>
 
-      {/* 9: WHY SEPARATION */}
+      {/* 9: YEAR 1 SIMULATION */}
       <Sl i={9}>
+        <FI><Tag>Year one</Tag></FI>
+        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: m ? 12 : 24 }}>1,000 people join. Here's what happens.</h2></FI>
+        <FI d={250}><Year1Sim active={s === 9} mobile={m} /></FI>
+      </Sl>
+
+      {/* 10: WHY SEPARATION */}
+      <Sl i={10}>
         <FI><Tag>Why it works</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 28 }}>Three walls kill every UBI. Two tokens break all of them.</h2></FI>
         {[
@@ -999,8 +1132,8 @@ export default function Deck() {
         ))}
       </Sl>
 
-      {/* 10: ADOPTION */}
-      <Sl i={10}>
+      {/* 11: ADOPTION */}
+      <Sl i={11}>
         <FI><Tag>The strategy</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 6 }}>It doesn't launch as UBI.</h2></FI>
         <FI d={200}><p style={{ fontSize: "clamp(15px, 1.3vw, 18px)", color: B.orange, fontWeight: 600, marginBottom: 28 }}>That's the entire trick.</p></FI>
@@ -1034,8 +1167,8 @@ export default function Deck() {
         <FI d={900}><p style={{ fontSize: 14, color: B.green, fontWeight: 600, fontStyle: "italic", marginTop: 16 }}>No one gives up what they have. They get what they have — plus the option for more.</p></FI>
       </Sl>
 
-      {/* 11: SECURITY */}
-      <Sl i={11}>
+      {/* 12: SECURITY */}
+      <Sl i={12}>
         <FI><Tag>Unbreakable identity</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 24 }}>One person. One wallet. Enforced by math.</h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 14, maxWidth: 620, width: "100%", marginBottom: 20, textAlign: "left" }}>
@@ -1061,8 +1194,8 @@ export default function Deck() {
         </GlassCard></FI>
       </Sl>
 
-      {/* 12: FRAUD */}
-      <Sl i={12}>
+      {/* 13: FRAUD */}
+      <Sl i={13}>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: m ? 20 : 40, maxWidth: 760, width: "100%", alignItems: "center", textAlign: "left" }}>
           <div>
             <FI><Tag>Protocol-level justice</Tag></FI>
@@ -1080,12 +1213,12 @@ export default function Deck() {
               <span style={{ color: B.green, fontWeight: 800 }}>BURST</span> revokes exactly the tainted fraction, O(k) forward, in one pass.
             </div></FI>
           </div>
-          <FI d={500}><FraudViz active={s === 12} mobile={m} /></FI>
+          <FI d={500}><FraudViz active={s === 13} mobile={m} /></FI>
         </div>
       </Sl>
 
-      {/* 13: GOVERNANCE */}
-      <Sl i={13}>
+      {/* 14: GOVERNANCE */}
+      <Sl i={14}>
         <FI><Tag>Self-amending democracy</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Every parameter is voted on. Including the voting rules.</h2></FI>
         <div style={{ maxWidth: 640, width: "100%", textAlign: "left" }}>
@@ -1120,8 +1253,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 14: CONSENSUS */}
-      <Sl i={14}>
+      {/* 15: CONSENSUS */}
+      <Sl i={15}>
         <FI><Tag>How blocks confirm</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Open Representative Voting. No mining. No staking lottery.</h2></FI>
         <div style={{ maxWidth: 600, width: "100%", textAlign: "left" }}>
@@ -1145,8 +1278,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 15: INFRASTRUCTURE */}
-      <Sl i={15}>
+      {/* 16: INFRASTRUCTURE */}
+      <Sl i={16}>
         <FI><Tag>The machine</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 28 }}>Block lattice. Zero fees. Sub-second.</h2></FI>
         <FI d={250}><div style={{ maxWidth: 720, width: "100%", textAlign: "left" }}>
@@ -1183,8 +1316,8 @@ export default function Deck() {
         </div></FI>
       </Sl>
 
-      {/* 16: ROADMAP */}
-      <Sl i={16}>
+      {/* 17: ROADMAP */}
+      <Sl i={17}>
         <FI><Tag>Where we are</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 28 }}>Built, running, open.</h2></FI>
         <div style={{ maxWidth: 540, width: "100%", textAlign: "left" }}>
@@ -1219,8 +1352,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 17: TEAM */}
-      <Sl i={17}>
+      {/* 18: TEAM */}
+      <Sl i={18}>
         <FI><Tag>Who's building this</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>One builder. Open-source. MIT license.</h2></FI>
         <FI d={200}><div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
@@ -1249,8 +1382,8 @@ export default function Deck() {
         </div></FI>
       </Sl>
 
-      {/* 18: THE ASK */}
-      <Sl i={18}>
+      {/* 19: THE ASK */}
+      <Sl i={19}>
         <FI><Tag>Join the build</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 28 }}>What BURST needs</h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14, maxWidth: 680, width: "100%", textAlign: "left" }}>
@@ -1274,8 +1407,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 19: CLOSING */}
-      <Sl i={19}>
+      {/* 20: CLOSING */}
+      <Sl i={20}>
         <div style={{ textAlign: "center", maxWidth: 700, margin: "0 auto" }}>
           <FI d={0}><p style={{ fontSize: "clamp(14px, 1.4vw, 19px)", color: B.gray, lineHeight: 1.85, marginBottom: 28 }}>
             Every monetary system in human history has made the same invisible choice.
@@ -1327,8 +1460,70 @@ export default function Deck() {
         {String(s + 1).padStart(2, "0")}/{TOTAL}
       </div>
       <div style={{ position: "absolute", bottom: 16, left: m ? 16 : 24, fontSize: 10, color: `${B.muted}44`, zIndex: 10 }}>
-        {m ? "swipe to navigate" : "← → or click"}
+        {m ? "swipe to navigate" : "← → or click · ? for menu"}
       </div>
+
+      {/* Hamburger / menu button */}
+      <button
+        onClick={(e) => { e.stopPropagation(); setMenu((p) => !p); }}
+        style={{
+          position: "absolute", top: m ? 12 : 16, right: m ? 12 : 20, zIndex: 30,
+          width: 36, height: 36, borderRadius: 10, border: `1px solid ${B.dim}33`,
+          background: menu ? B.green + "15" : "rgba(12,15,22,0.8)", cursor: "pointer",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
+          backdropFilter: "blur(10px)", transition: "all .3s", padding: 0,
+        }}
+      >
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{
+            width: 14, height: 1.5, borderRadius: 1, transition: "all .3s",
+            background: menu ? B.green : B.gray,
+            transform: menu ? (i === 0 ? "rotate(45deg) translate(3px, 3px)" : i === 2 ? "rotate(-45deg) translate(3px, -3px)" : "scale(0)") : "none",
+          }} />
+        ))}
+      </button>
+
+      {/* Slide picker overlay */}
+      {menu && (
+        <div
+          onClick={(e) => { e.stopPropagation(); setMenu(false); }}
+          style={{
+            position: "absolute", inset: 0, zIndex: 20,
+            background: "rgba(5,7,11,0.92)", backdropFilter: "blur(20px)",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            animation: "fadeIn .25s both",
+          }}
+        >
+          <div style={{ fontSize: 10, color: B.muted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 16 }}>Jump to slide</div>
+          <div style={{
+            display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 6,
+            maxWidth: 500, width: "100%", padding: "0 24px",
+            maxHeight: "70vh", overflowY: "auto",
+          }}>
+            {SLIDE_TITLES.map((title, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); setS(i); setHp(0); setMenu(false); }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 14px", borderRadius: 8, border: "none", cursor: "pointer",
+                  background: s === i ? `${B.green}18` : "rgba(12,15,22,0.6)",
+                  transition: "all .2s", textAlign: "left",
+                }}
+                onMouseEnter={(e) => { if (s !== i) e.currentTarget.style.background = `${B.dim}22`; }}
+                onMouseLeave={(e) => { if (s !== i) e.currentTarget.style.background = "rgba(12,15,22,0.6)"; }}
+              >
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: s === i ? B.green : B.muted,
+                  fontFamily: "'JetBrains Mono', monospace", width: 20, flexShrink: 0,
+                }}>{String(i + 1).padStart(2, "0")}</span>
+                <span style={{ fontSize: 12, fontWeight: s === i ? 700 : 500, color: s === i ? B.green : B.text }}>{title}</span>
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: 10, color: B.muted, marginTop: 16 }}>{m ? "Tap a slide" : "Press ? or Esc to close"}</div>
+        </div>
+      )}
     </div>
   );
 }
