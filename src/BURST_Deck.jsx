@@ -650,95 +650,11 @@ function TxFlow({ active, mobile }) {
 }
 
 /* --- Year 1 Simulation --- */
-function Year1Sim({ active, mobile }) {
-  const [month, setMonth] = useState(0);
-  useEffect(() => {
-    if (!active) { setMonth(0); return; }
-    let m = 0;
-    const id = setInterval(() => { m++; setMonth(m); if (m >= 12) clearInterval(id); }, 800);
-    return () => clearInterval(id);
-  }, [active]);
-
-  const data = useMemo(() => {
-    // 1000 people, 1 BRN/hr, gradually spending, economy bootstrapping
-    const months = [];
-    let users = 0, totalBrn = 0, totalTrst = 0, txCount = 0;
-    for (let i = 0; i <= 12; i++) {
-      // Staggered joins: ~80/month first 6 months, then word spreads
-      users = Math.min(1000, Math.round(i < 6 ? i * 83 : 500 + (i - 6) * 83));
-      // Each user accrues 720 BRN/month (1/hr × 24 × 30)
-      totalBrn = users * 720 * (i + 1) * 0.5; // average half-month accrual
-      // Spending increases as economy develops: 5% month 1 → 40% month 12
-      const spendRate = Math.min(0.4, 0.05 + i * 0.03);
-      totalTrst += users * 720 * spendRate;
-      txCount += Math.round(users * spendRate * 30);
-      months.push({ users, brn: Math.round(totalBrn), trst: Math.round(totalTrst), tx: txCount });
-    }
-    return months;
-  }, []);
-
-  if (!active) return null;
-  const d = data[Math.min(month, 12)];
-  const pct = month / 12;
-
-  const fmt = (n) => n >= 1000000 ? (n / 1000000).toFixed(1) + "M" : n >= 1000 ? (n / 1000).toFixed(0) + "K" : String(n);
-
-  const Bar = ({ label, value, max, color }) => (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
-        <span style={{ color: B.gray, fontWeight: 600 }}>{label}</span>
-        <span style={{ color, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>{fmt(value)}</span>
-      </div>
-      <div style={{ height: 8, background: `${B.dim}22`, borderRadius: 4, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${Math.min(100, (value / max) * 100)}%`, background: `linear-gradient(90deg, ${color}88, ${color})`, borderRadius: 4, transition: "width .6s cubic-bezier(.16,1,.3,1)" }} />
-      </div>
-    </div>
-  );
-
-  return (
-    <div style={{ maxWidth: 520, width: "100%", textAlign: "left" }}>
-      {/* Month indicator */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-        <div style={{ fontSize: mobile ? 28 : 36, fontWeight: 800, color: B.green, fontFamily: "'JetBrains Mono', monospace" }}>
-          Month {Math.min(month, 12)}
-        </div>
-        <div style={{ flex: 1, height: 4, background: `${B.dim}22`, borderRadius: 2, overflow: "hidden" }}>
-          <div style={{ height: "100%", width: `${pct * 100}%`, background: B.green, borderRadius: 2, transition: "width .6s" }} />
-        </div>
-      </div>
-
-      <Bar label="Verified users" value={d.users} max={1000} color={B.green} />
-      <Bar label="BRN accrued (total)" value={d.brn} max={data[12].brn} color={B.orange} />
-      <Bar label="TRST in circulation" value={d.trst} max={data[12].trst} color={B.blue} />
-      <Bar label="Transactions" value={d.tx} max={data[12].tx} color={B.green} />
-
-      {/* Milestone callouts */}
-      <div style={{ marginTop: 16, minHeight: 44 }}>
-        {[
-          { at: 0, text: "Network launches. First wallets verify each other.", color: B.muted },
-          { at: 2, text: "200 users. First real purchases. TRST begins circulating.", color: B.blue },
-          { at: 5, text: "500 users. Local businesses start accepting TRST.", color: B.orange },
-          { at: 8, text: "800 users. Governance proposals appear. Community sets parameters.", color: B.green },
-          { at: 12, text: "1,000 users. Self-sustaining economy. The floor is real.", color: B.green },
-        ].map((m, i) => (
-          <div key={i} style={{
-            position: i === 0 ? "relative" : "absolute",
-            opacity: month >= m.at && (i === 4 || month < ([ 2, 5, 8, 12, 99 ][i + 1] || 99)) ? 1 : 0,
-            transition: "opacity .6s",
-            fontSize: 12, color: m.color, fontWeight: 600, lineHeight: 1.5,
-          }}>
-            {m.text}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ====== MAIN DECK ====== */
 const SLIDE_TITLES = [
   "Birth lottery", "The assumption", "The scale", "Previous attempts",
-  "Two-knob machine", "Try it yourself", "BURST", "Architecture", "How money flows", "Year one",
+  "Two-knob machine", "Try it yourself", "BURST", "Architecture", "How money flows",
   "Why it works", "Adoption strategy", "Identity", "Fraud detection",
   "Governance", "Consensus", "Infrastructure", "Roadmap", "Team", "Join the build", "Closing",
 ];
@@ -748,7 +664,7 @@ export default function Deck() {
   const [hp, setHp] = useState(0);
   const [menu, setMenu] = useState(false);
   const m = useIsMobile();
-  const TOTAL = 21;
+  const TOTAL = 20;
   const touchRef = useRef(null);
 
   const next = useCallback(() => {
@@ -1080,7 +996,7 @@ export default function Deck() {
             { time: "8:00 AM", event: "Maria wakes up. She's earned 8 BRN overnight.", detail: "BRN accrues at 1/hour for every verified human. It's not minted — it's a counter that ticked up.", color: B.orange },
             { time: "9:15 AM", event: "She buys bread for 2 BRN.", detail: "Her 2 BRN are destroyed. The bakery receives 2 TRST — created at that moment, 1:1.", color: B.blue },
             { time: "12:00 PM", event: "The bakery pays a farmer 1 TRST for flour.", detail: "TRST is real money. Transferable. The farmer can spend it, save it, or pay someone else.", color: B.blue },
-            { time: "6:00 PM", event: "Maria has 22 BRN. She'll never hit zero.", detail: "Even if she spends everything, tomorrow she earns 24 more. The floor is permanent.", color: B.green },
+            { time: "6:00 PM", event: "Maria spent 2, but earned 10 more since morning.", detail: "BRN keeps accruing. Even if she spends it all, tomorrow brings 24 more. The floor is permanent.", color: B.green },
           ].map((step, i) => (
             <FI key={i} d={300 + i * 120}>
               <GlassCard accent={step.color} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${step.color}` }}>
@@ -1096,7 +1012,6 @@ export default function Deck() {
             { n: "1 BRN/hr", l: "accrual rate", c: B.orange },
             { n: "1:1", l: "BRN → TRST", c: B.blue },
             { n: "100 yr", l: "TRST expiry", c: B.blue },
-            { n: "0%", l: "inflation", c: B.green },
           ].map((k, i) => (
             <div key={i} style={{ textAlign: "center" }}>
               <div style={{ fontSize: m ? 16 : 20, fontWeight: 800, color: k.c, fontFamily: "'JetBrains Mono', monospace" }}>{k.n}</div>
@@ -1106,15 +1021,8 @@ export default function Deck() {
         </div></FI>
       </Sl>
 
-      {/* 9: YEAR 1 SIMULATION */}
+      {/* 9: WHY SEPARATION */}
       <Sl i={9}>
-        <FI><Tag>Year one</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: m ? 12 : 24 }}>1,000 people join. Here's what happens.</h2></FI>
-        <FI d={250}><Year1Sim active={s === 9} mobile={m} /></FI>
-      </Sl>
-
-      {/* 10: WHY SEPARATION */}
-      <Sl i={10}>
         <FI><Tag>Why it works</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 28 }}>Three walls kill every UBI. Two tokens break all of them.</h2></FI>
         {[
@@ -1138,8 +1046,8 @@ export default function Deck() {
         ))}
       </Sl>
 
-      {/* 11: ADOPTION */}
-      <Sl i={11}>
+      {/* 10: ADOPTION */}
+      <Sl i={10}>
         <FI><Tag>The strategy</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 6 }}>It doesn't launch as UBI.</h2></FI>
         <FI d={200}><p style={{ fontSize: "clamp(15px, 1.3vw, 18px)", color: B.orange, fontWeight: 600, marginBottom: 24 }}>That's the entire trick.</p></FI>
@@ -1174,8 +1082,8 @@ export default function Deck() {
         <FI d={900}><p style={{ fontSize: 13, color: B.green, fontWeight: 600, fontStyle: "italic", marginTop: 16 }}>No one gives up what they have. They get what they have — plus the option for more.</p></FI>
       </Sl>
 
-      {/* 12: SECURITY */}
-      <Sl i={12}>
+      {/* 11: SECURITY */}
+      <Sl i={11}>
         <FI><Tag>Unbreakable identity</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 24 }}>One person. One wallet. Enforced by math.</h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 14, maxWidth: 620, width: "100%", marginBottom: 20, textAlign: "left" }}>
@@ -1201,8 +1109,8 @@ export default function Deck() {
         </GlassCard></FI>
       </Sl>
 
-      {/* 13: FRAUD */}
-      <Sl i={13}>
+      {/* 12: FRAUD */}
+      <Sl i={12}>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: m ? 20 : 40, maxWidth: 760, width: "100%", alignItems: "center", textAlign: "left" }}>
           <div>
             <FI><Tag>Protocol-level justice</Tag></FI>
@@ -1220,12 +1128,12 @@ export default function Deck() {
               <span style={{ color: B.green, fontWeight: 800 }}>BURST</span> revokes exactly the tainted fraction, O(k) forward, in one pass.
             </div></FI>
           </div>
-          <FI d={500}><FraudViz active={s === 13} mobile={m} /></FI>
+          <FI d={500}><FraudViz active={s === 12} mobile={m} /></FI>
         </div>
       </Sl>
 
-      {/* 14: GOVERNANCE */}
-      <Sl i={14}>
+      {/* 13: GOVERNANCE */}
+      <Sl i={13}>
         <FI><Tag>Self-amending democracy</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Every parameter is voted on. Including the voting rules.</h2></FI>
         <div style={{ maxWidth: 640, width: "100%", textAlign: "left" }}>
@@ -1260,8 +1168,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 15: CONSENSUS */}
-      <Sl i={15}>
+      {/* 14: CONSENSUS */}
+      <Sl i={14}>
         <FI><Tag>How blocks confirm</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Open Representative Voting. No mining. No staking lottery.</h2></FI>
         <div style={{ maxWidth: 600, width: "100%", textAlign: "left" }}>
@@ -1285,8 +1193,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 16: INFRASTRUCTURE */}
-      <Sl i={16}>
+      {/* 15: INFRASTRUCTURE */}
+      <Sl i={15}>
         <FI><Tag>The machine</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 28 }}>Block lattice. Zero fees. Sub-second.</h2></FI>
         <FI d={250}><div style={{ maxWidth: 720, width: "100%", textAlign: "left" }}>
@@ -1323,8 +1231,8 @@ export default function Deck() {
         </div></FI>
       </Sl>
 
-      {/* 17: ROADMAP */}
-      <Sl i={17}>
+      {/* 16: ROADMAP */}
+      <Sl i={16}>
         <FI><Tag>Where we are</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Built, running, open.</h2></FI>
         {/* Progress bar */}
@@ -1367,8 +1275,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 18: TEAM */}
-      <Sl i={18}>
+      {/* 17: TEAM */}
+      <Sl i={17}>
         <FI><Tag>Who's building this</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>One builder. Open-source. MIT license.</h2></FI>
         <FI d={200}><div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
@@ -1397,8 +1305,8 @@ export default function Deck() {
         </div></FI>
       </Sl>
 
-      {/* 19: THE ASK */}
-      <Sl i={19}>
+      {/* 18: THE ASK */}
+      <Sl i={18}>
         <FI><Tag>Join the build</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 28 }}>What BURST needs</h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14, maxWidth: 680, width: "100%", textAlign: "left" }}>
@@ -1422,8 +1330,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 20: CLOSING */}
-      <Sl i={20}>
+      {/* 19: CLOSING */}
+      <Sl i={19}>
         <div style={{ textAlign: "center", maxWidth: 700, margin: "0 auto" }}>
           <FI d={0}><p style={{ fontSize: "clamp(14px, 1.4vw, 19px)", color: B.gray, lineHeight: 1.85, marginBottom: 28 }}>
             Every monetary system in human history has made the same invisible choice.
