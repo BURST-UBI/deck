@@ -1136,35 +1136,36 @@ export default function Deck() {
       <Sl i={11}>
         <FI><Tag>The strategy</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 6 }}>It doesn't launch as UBI.</h2></FI>
-        <FI d={200}><p style={{ fontSize: "clamp(15px, 1.3vw, 18px)", color: B.orange, fontWeight: 600, marginBottom: 28 }}>That's the entire trick.</p></FI>
-        <div style={{ maxWidth: 580, width: "100%", textAlign: "left" }}>
+        <FI d={200}><p style={{ fontSize: "clamp(15px, 1.3vw, 18px)", color: B.orange, fontWeight: 600, marginBottom: 24 }}>That's the entire trick.</p></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, maxWidth: 640, width: "100%", textAlign: "left" }}>
           {[
-            { n: "01", t: "Launch as normal money", d: "r=0, e=forever. A fast, feeless crypto. Nothing alien. Just better money.", c: B.muted },
-            { n: "02", t: "Community activates income", d: "Universal BRN accrual turns on. Every verified human starts earning. The floor appears.", c: B.green },
-            { n: "03", t: "Community sets wealth cycling", d: "TRST expiry activates. The economy begins to self-balance.", c: B.blue },
-            { n: "04", t: "Evolve forever", d: "Any config reachable. Any choice reversible. Democracy decides.", c: B.green },
+            { n: "01", t: "Launch as normal money", d: "A fast, feeless cryptocurrency. Nothing alien. People adopt it because it's better, not because it's charity.", c: B.muted, r: "0", e: "∞" },
+            { n: "02", t: "Community activates income", d: "Governance votes to set r > 0. BRN starts accruing. Every verified human now earns a floor.", c: B.green, r: "1/hr", e: "∞" },
+            { n: "03", t: "Community sets wealth cycling", d: "Governance votes to set e < ∞. TRST begins to expire. The economy self-balances.", c: B.blue, r: "1/hr", e: "100yr" },
+            { n: "04", t: "Evolve forever", d: "Any configuration is reachable. Any choice is reversible. The community decides everything.", c: B.green, r: "?", e: "?" },
           ].map((p, i) => (
             <FI key={i} d={300 + i * 120}>
-              <div style={{ display: "flex", gap: 20, marginBottom: i < 3 ? 8 : 0 }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, width: 40 }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 12, fontWeight: 800, fontFamily: "'JetBrains Mono', monospace",
-                    color: B.bg, background: `linear-gradient(135deg, ${p.c}, ${p.c}cc)`,
-                    boxShadow: `0 0 20px ${p.c}33`,
-                  }}>{p.n}</div>
-                  {i < 3 && <div style={{ flex: 1, width: 1, background: `linear-gradient(to bottom, ${p.c}44, transparent)`, margin: "6px 0", minHeight: 14 }} />}
+              <GlassCard accent={p.c} style={{ padding: "20px", borderTop: `3px solid ${p.c}`, height: "100%" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{
+                      width: 28, height: 28, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 11, fontWeight: 800, fontFamily: "'JetBrains Mono', monospace",
+                      color: B.bg, background: `linear-gradient(135deg, ${p.c}, ${p.c}cc)`,
+                    }}>{p.n}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: p.c }}>{p.t}</span>
+                  </div>
                 </div>
-                <div style={{ paddingBottom: 16 }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: p.c }}>{p.t}</div>
-                  <div style={{ fontSize: 13, color: B.gray, lineHeight: 1.65, marginTop: 4 }}>{p.d}</div>
+                <div style={{ fontSize: 12, color: B.gray, lineHeight: 1.65, marginBottom: 12 }}>{p.d}</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", padding: "3px 10px", borderRadius: 6, background: `${B.orange}12`, color: B.orange, border: `1px solid ${B.orange}22` }}>r={p.r}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", padding: "3px 10px", borderRadius: 6, background: `${B.blue}12`, color: B.blue, border: `1px solid ${B.blue}22` }}>e={p.e}</span>
                 </div>
-              </div>
+              </GlassCard>
             </FI>
           ))}
         </div>
-        <FI d={900}><p style={{ fontSize: 14, color: B.green, fontWeight: 600, fontStyle: "italic", marginTop: 16 }}>No one gives up what they have. They get what they have — plus the option for more.</p></FI>
+        <FI d={900}><p style={{ fontSize: 13, color: B.green, fontWeight: 600, fontStyle: "italic", marginTop: 16 }}>No one gives up what they have. They get what they have — plus the option for more.</p></FI>
       </Sl>
 
       {/* 12: SECURITY */}
