@@ -969,61 +969,39 @@ export default function Deck() {
 
       {/* 4: TWO-KNOB INSIGHT */}
       <Sl i={4}>
-        <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", maxWidth: 700, margin: "0 auto" }}>
           <FI><Tag>The breakthrough</Tag></FI>
-          <FI d={200}><h2 style={{ ...H(46), color: B.white, marginBottom: 14 }}>What if money is just a<br /><span style={{ color: B.green, textShadow: `0 0 40px ${B.green}22` }}>two-knob machine</span>?</h2></FI>
-          <FI d={450}><p style={{ ...P, textAlign: "center", margin: "0 auto 28px", maxWidth: 500 }}>
-            One knob controls how much everyone earns. The other controls how long wealth lasts.
+          <FI d={200}><h2 style={{ ...H(44), color: B.white, marginBottom: 20 }}>Every economy is just<br /><span style={{ color: B.green, textShadow: `0 0 40px ${B.green}22` }}>two decisions</span></h2></FI>
+
+          <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: m ? 16 : 20, maxWidth: 600, margin: "0 auto", textAlign: "left" }}>
+            <FI d={450}><GlassCard accent={B.orange} style={{ padding: "24px", borderTop: `3px solid ${B.orange}` }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: B.orange, marginBottom: 10 }}>How much does everyone get?</div>
+              <div style={{ fontSize: 13, color: B.text, lineHeight: 1.7, marginBottom: 14 }}>
+                Right now, the answer is nothing. Zero. You're born, you get no economic floor. What if every person earned a small income just for being alive?
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: B.muted }}>
+                <span>Nothing</span>
+                <span style={{ color: B.orange, fontWeight: 600 }}>Universal income</span>
+              </div>
+              <div style={{ height: 4, borderRadius: 2, marginTop: 6, background: `linear-gradient(90deg, ${B.dim}44, ${B.orange})` }} />
+            </GlassCard></FI>
+
+            <FI d={600}><GlassCard accent={B.blue} style={{ padding: "24px", borderTop: `3px solid ${B.blue}` }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: B.blue, marginBottom: 10 }}>How long does wealth last?</div>
+              <div style={{ fontSize: 13, color: B.text, lineHeight: 1.7, marginBottom: 14 }}>
+                Right now, forever. Wealth compounds at the top and stays there across generations. What if money slowly expired, cycling back into the economy?
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: B.muted }}>
+                <span>Cycles back</span>
+                <span style={{ color: B.blue, fontWeight: 600 }}>Lasts forever</span>
+              </div>
+              <div style={{ height: 4, borderRadius: 2, marginTop: 6, background: `linear-gradient(90deg, ${B.blue}, ${B.dim}44)` }} />
+            </GlassCard></FI>
+          </div>
+
+          <FI d={800}><p style={{ fontSize: 14, color: B.gray, marginTop: 24, lineHeight: 1.7, maxWidth: 500, margin: "24px auto 0" }}>
+            Set both to zero — you get Bitcoin. Turn up income — you get a safety net. Add expiry — wealth circulates. <span style={{ color: B.green, fontWeight: 700 }}>Every economic model is a position on these two dials.</span>
           </p></FI>
-          {/* Two parameter cards with gradient bar connecting them */}
-          <FI d={650}><div style={{ position: "relative", maxWidth: 560, margin: "0 auto" }}>
-            {/* Connecting gradient line */}
-            {!m && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 60, height: 2, background: `linear-gradient(90deg, ${B.orange}44, ${B.blue}44)`, zIndex: 0 }} />}
-            <div style={{ display: "flex", justifyContent: "center", gap: m ? 14 : 24, flexWrap: "wrap", position: "relative", zIndex: 1 }}>
-              {[
-                { param: "r", label: "income rate", color: B.orange, lo: "no floor", hi: "full UBI", desc: "How much BRN every human earns per hour" },
-                { param: "e", label: "expiry period", color: B.blue, lo: "cycles fast", hi: "lasts forever", desc: "How long TRST stays valuable before it decays" },
-              ].map((k, i) => (
-                <div key={i} style={{
-                  flex: m ? "1 1 100%" : "1 1 0", padding: m ? "20px" : "28px 24px",
-                  background: `linear-gradient(135deg, rgba(12,15,22,0.9), ${k.color}08)`,
-                  borderRadius: 16, border: `1px solid ${k.color}22`,
-                  textAlign: "center", position: "relative", overflow: "hidden",
-                }}>
-                  {/* Subtle glow */}
-                  <div style={{ position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)", width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle, ${k.color}08, transparent 70%)`, pointerEvents: "none" }} />
-                  <div style={{ fontSize: m ? 48 : 64, fontWeight: 800, color: k.color, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1, position: "relative" }}>{k.param}</div>
-                  <div style={{ fontSize: 13, color: B.white, fontWeight: 600, marginTop: 8 }}>{k.label}</div>
-                  <div style={{ fontSize: 11, color: B.gray, marginTop: 6, lineHeight: 1.5 }}>{k.desc}</div>
-                  {/* Range indicator */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, justifyContent: "center" }}>
-                    <span style={{ fontSize: 9, color: B.muted }}>{k.lo}</span>
-                    <div style={{ flex: 1, maxWidth: 80, height: 3, borderRadius: 2, background: `linear-gradient(90deg, ${k.color}22, ${k.color})` }} />
-                    <span style={{ fontSize: 9, color: k.color, fontWeight: 600 }}>{k.hi}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div></FI>
-          {/* Configuration examples as a visual spectrum */}
-          <FI d={900}><div style={{ maxWidth: 520, margin: "24px auto 0" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 2, marginBottom: 8 }}>
-              <div style={{ flex: 1, height: 3, borderRadius: 2, background: `linear-gradient(90deg, ${B.muted}, ${B.green}, ${B.blue}, ${B.purple})` }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              {[
-                { label: "Bitcoin", sub: "r=0, e=∞", c: B.muted },
-                { label: "UBI floor", sub: "r>0, e=∞", c: B.green },
-                { label: "Balanced", sub: "r>0, e=med", c: B.blue },
-                { label: "Equality", sub: "r=max, e=low", c: B.purple },
-              ].map((ex, i) => (
-                <div key={i} style={{ textAlign: "center", flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: ex.c }}>{ex.label}</div>
-                  <div style={{ fontSize: 9, color: B.muted, fontFamily: "'JetBrains Mono', monospace", marginTop: 2 }}>{ex.sub}</div>
-                </div>
-              ))}
-            </div>
-          </div></FI>
         </div>
       </Sl>
 
