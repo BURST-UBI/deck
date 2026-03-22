@@ -737,8 +737,8 @@ function Year1Sim({ active, mobile }) {
 
 /* ====== MAIN DECK ====== */
 const SLIDE_TITLES = [
-  "Birth lottery", "BURST", "The assumption", "The scale", "Previous attempts",
-  "Two-knob machine", "Try it yourself", "Architecture", "How money flows", "Year one",
+  "Birth lottery", "The assumption", "The scale", "Previous attempts",
+  "Two-knob machine", "Try it yourself", "BURST", "Architecture", "How money flows", "Year one",
   "Why it works", "Adoption strategy", "Identity", "Fraud detection",
   "Governance", "Consensus", "Infrastructure", "Roadmap", "Team", "Join the build", "Closing",
 ];
@@ -752,7 +752,7 @@ export default function Deck() {
   const touchRef = useRef(null);
 
   const next = useCallback(() => {
-    if (s === 2 && hp < 1) { setHp((p) => p + 1); return; }
+    if (s === 1 && hp < 1) { setHp((p) => p + 1); return; }
     setS((p) => Math.min(p + 1, TOTAL - 1));
     setHp(0);
   }, [s, hp]);
@@ -877,25 +877,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 1: TITLE */}
+      {/* 1: HOOK */}
       <Sl i={1}>
-        <FI d={0}><Tag>Protocol Whitepaper</Tag></FI>
-        <FI d={200}><h1 style={{ ...H(90), color: B.green, textShadow: `0 0 80px ${B.green}22` }}>BURST</h1></FI>
-        <FI d={400}><h2 style={{ ...H(30), color: B.white, fontWeight: 600, marginTop: 10 }}>The General Form of Money</h2></FI>
-        <FI d={600}><p style={{ ...P, marginTop: 22, maxWidth: 520, color: B.gray }}>Two parameters. Every economic model from capitalism to UBI as a democratic configuration.</p></FI>
-        <FI d={900}><div style={{ display: "flex", gap: 8, marginTop: 36, flexWrap: "wrap", justifyContent: "center" }}>
-          {["MIT License", "No token sale", "No pre-mine", "No founder allocation", "Open source Rust"].map((t, i) => (
-            <span key={i} style={{
-              fontSize: 10, color: B.gray, padding: "7px 16px", borderRadius: 20,
-              background: "linear-gradient(135deg, rgba(18,22,32,0.6), rgba(12,15,22,0.8))",
-              border: `1px solid ${B.dim}22`, backdropFilter: "blur(10px)",
-            }}>{t}</span>
-          ))}
-        </div></FI>
-      </Sl>
-
-      {/* 2: HOOK */}
-      <Sl i={2}>
         <div style={{ textAlign: "center", maxWidth: 740, margin: "0 auto" }}>
           <FI><p style={{ fontSize: "clamp(18px, 2.5vw, 32px)", color: B.text, fontWeight: 400, lineHeight: 1.65, fontFamily: "'Sora', sans-serif" }}>
             Gold. Fiat. Bitcoin. Ethereum. Every currency ever created.
@@ -928,8 +911,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 3: STATS */}
-      <Sl i={3}>
+      {/* 2: STATS */}
+      <Sl i={2}>
         <FI><Tag color={B.red}>The scale</Tag></FI>
         <FI d={100}><h2 style={{ ...H(44), color: B.white, marginBottom: 6 }}>The problem isn't policy.</h2></FI>
         <FI d={200}><h2 style={{ ...H(44), color: B.orange }}>It's the base layer of money itself.</h2></FI>
@@ -943,7 +926,7 @@ export default function Deck() {
             <FI key={i} d={450 + i * 100}>
               <GlassCard accent={item.c} glow style={{ padding: "24px 20px", borderBottom: `3px solid ${item.c}` }}>
                 <div style={{ fontSize: 38, fontWeight: 800, color: item.c, fontFamily: "'Sora', sans-serif", textShadow: `0 0 30px ${item.c}22` }}>
-                  {item.val === 0 ? "0" : <CountUp end={item.val} suf={item.su} active={s === 3} dec={item.d} />}
+                  {item.val === 0 ? "0" : <CountUp end={item.val} suf={item.su} active={s === 2} dec={item.d} />}
                 </div>
                 <div style={{ fontSize: 11, color: B.gray, marginTop: 8, lineHeight: 1.6 }}>{item.l}</div>
               </GlassCard>
@@ -952,8 +935,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 4: COMPETITORS */}
-      <Sl i={4}>
+      {/* 3: COMPETITORS */}
+      <Sl i={3}>
         <FI><Tag>Why previous attempts failed</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>They solved one problem and created another.</h2></FI>
         <FI d={200}><div style={{ maxWidth: 700, width: "100%", overflowX: "auto" }}>
@@ -984,8 +967,8 @@ export default function Deck() {
         </div></FI>
       </Sl>
 
-      {/* 5: TWO-KNOB INSIGHT */}
-      <Sl i={5}>
+      {/* 4: TWO-KNOB INSIGHT */}
+      <Sl i={4}>
         <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
           <FI><Tag>The breakthrough</Tag></FI>
           <FI d={200}><h2 style={{ ...H(46), color: B.white, marginBottom: 14 }}>What if money is just a<br /><span style={{ color: B.green, textShadow: `0 0 40px ${B.green}22` }}>two-knob machine</span>?</h2></FI>
@@ -1010,12 +993,29 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 6: INTERACTIVE SPECTRUM */}
-      <Sl i={6}>
+      {/* 5: INTERACTIVE SPECTRUM */}
+      <Sl i={5}>
         <FI><Tag>Try it yourself</Tag></FI>
         <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 8 }}>Drag the knobs. Watch inequality reshape.</h2></FI>
         <FI d={200}><p style={{ ...P, marginBottom: 28 }}>Start at r=0, e=Forever. That's normal money. Now slowly increase the income rate...</p></FI>
-        <FI d={400}><Spectrum active={s === 6} mobile={m} /></FI>
+        <FI d={400}><Spectrum active={s === 5} mobile={m} /></FI>
+      </Sl>
+
+      {/* 6: BURST TITLE */}
+      <Sl i={6}>
+        <FI d={0}><Tag>Protocol Whitepaper</Tag></FI>
+        <FI d={200}><h1 style={{ ...H(90), color: B.green, textShadow: `0 0 80px ${B.green}22` }}>BURST</h1></FI>
+        <FI d={400}><h2 style={{ ...H(30), color: B.white, fontWeight: 600, marginTop: 10 }}>The General Form of Money</h2></FI>
+        <FI d={600}><p style={{ ...P, marginTop: 22, maxWidth: 520, color: B.gray }}>Two parameters. Every economic model from capitalism to UBI as a democratic configuration.</p></FI>
+        <FI d={900}><div style={{ display: "flex", gap: 8, marginTop: 36, flexWrap: "wrap", justifyContent: "center" }}>
+          {["MIT License", "No token sale", "No pre-mine", "No founder allocation", "Open source Rust"].map((t, i) => (
+            <span key={i} style={{
+              fontSize: 10, color: B.gray, padding: "7px 16px", borderRadius: 20,
+              background: "linear-gradient(135deg, rgba(18,22,32,0.6), rgba(12,15,22,0.8))",
+              border: `1px solid ${B.dim}22`, backdropFilter: "blur(10px)",
+            }}>{t}</span>
+          ))}
+        </div></FI>
       </Sl>
 
       {/* 7: TWO TOKENS */}
