@@ -662,7 +662,7 @@ function TxFlow({ active, mobile }) {
 
 /* ====== MAIN DECK ====== */
 const SLIDE_TITLES = [
-  "Birth lottery", "The assumption", "The scale", "Previous attempts",
+  "Birth lottery", "The assumption", "The scale", "The accelerant", "Previous attempts",
   "Two-knob machine", "Try it yourself", "BURST", "Architecture", "How money flows",
   "Why it works", "Adoption strategy", "Identity", "Fraud detection",
   "Governance", "Consensus", "Infrastructure", "Roadmap", "Team", "Join the build", "Closing",
@@ -743,7 +743,7 @@ export default function Deck() {
   const [hp, setHp] = useState(0);
   const [menu, setMenu] = useState(false);
   const m = useIsMobile();
-  const TOTAL = 20;
+  const TOTAL = 21;
   const touchRef = useRef(null);
 
   const sync = usePresenterSync(useCallback((slide, hp) => {
@@ -972,8 +972,33 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 3: COMPETITORS */}
+      {/* 3: AI ACCELERATION */}
       <Sl i={3}>
+        <FI><Tag color={B.orange}>The accelerant</Tag></FI>
+        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>AI doesn't just take jobs.</h2></FI>
+        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>It concentrates the returns of replacing them.</p></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr 1fr", gap: 12, maxWidth: 720, width: "100%", textAlign: "left" }}>
+          {[
+            { tag: "TODAY", point: "One company replaces 10,000 workers", detail: "The productivity gains flow to shareholders, not the displaced. GDP rises. Median income doesn't.", color: B.orange },
+            { tag: "TOMORROW", point: "Tax-funded UBI can't keep up", detail: "As the taxable labor base shrinks, the political will to redistribute shrinks with it. The winners write the rules.", color: B.red },
+            { tag: "BURST", point: "The floor is protocol-level", detail: "BRN accrues to every verified human by design. No tax. No vote. No politician required. It just runs.", color: B.green },
+          ].map((c, i) => (
+            <FI key={i} d={300 + i * 120}>
+              <GlassCard accent={c.color} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${c.color}` }}>
+                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: c.color, marginBottom: 6 }}>{c.tag}</div>
+                <div style={{ fontSize: m ? 13 : 14, fontWeight: 700, color: B.white, lineHeight: 1.4, marginBottom: 8 }}>{c.point}</div>
+                <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>{c.detail}</div>
+              </GlassCard>
+            </FI>
+          ))}
+        </div>
+        <FI d={700}><p style={{ fontSize: 12, color: B.muted, fontStyle: "italic", marginTop: 16, textAlign: "center" }}>
+          This isn't a prediction. It's already happening — and it will only accelerate.
+        </p></FI>
+      </Sl>
+
+      {/* 4: COMPETITORS */}
+      <Sl i={4}>
         <FI><Tag>Why previous attempts failed</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>They solved one problem and created another.</h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, maxWidth: 680, width: "100%", textAlign: "left" }}>
@@ -997,8 +1022,8 @@ export default function Deck() {
         </div>
       </Sl>
 
-      {/* 4: TWO-KNOB INSIGHT */}
-      <Sl i={4}>
+      {/* 5: TWO-KNOB INSIGHT */}
+      <Sl i={5}>
         <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto" }}>
           <FI><Tag>The breakthrough</Tag></FI>
           <FI d={200}><h2 style={{ ...H(46), color: B.white, marginBottom: 14 }}>What if money is just a<br /><span style={{ color: B.green, textShadow: `0 0 40px ${B.green}22` }}>two-knob machine</span>?</h2></FI>
@@ -1024,15 +1049,15 @@ export default function Deck() {
       </Sl>
 
       {/* 5: INTERACTIVE SPECTRUM */}
-      <Sl i={5}>
+      <Sl i={6}>
         <FI><Tag>Try it yourself</Tag></FI>
         <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 8 }}>Drag the knobs. Watch inequality reshape.</h2></FI>
         <FI d={200}><p style={{ ...P, marginBottom: 28 }}>Start at r=0, e=Forever. That's normal money. Now slowly increase the income rate...</p></FI>
-        <FI d={400}><Spectrum active={s === 5} mobile={m} /></FI>
+        <FI d={400}><Spectrum active={s === 6} mobile={m} /></FI>
       </Sl>
 
       {/* 6: BURST TITLE */}
-      <Sl i={6}>
+      <Sl i={7}>
         <FI d={0}><Tag>Protocol Whitepaper</Tag></FI>
         <FI d={200}><h1 style={{ ...H(90), color: B.green, textShadow: `0 0 80px ${B.green}22` }}>BURST</h1></FI>
         <FI d={400}><h2 style={{ ...H(30), color: B.white, fontWeight: 600, marginTop: 10 }}>The General Form of Money</h2></FI>
@@ -1049,7 +1074,7 @@ export default function Deck() {
       </Sl>
 
       {/* 7: TWO TOKENS */}
-      <Sl i={7}>
+      <Sl i={8}>
         <FI><Tag>The architecture</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 24 }}>Two tokens. One insight.</h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: 18, maxWidth: 680, width: "100%", textAlign: "left" }}>
@@ -1078,11 +1103,11 @@ export default function Deck() {
             </GlassCard>
           </FI>
         </div>
-        <FI d={550}><LiveBRN active={s === 7} /></FI>
+        <FI d={550}><LiveBRN active={s === 8} /></FI>
       </Sl>
 
       {/* 8: TOKENOMICS — transaction story */}
-      <Sl i={8}>
+      <Sl i={9}>
         <FI><Tag>How the money works</Tag></FI>
         <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>Maria lives in Lisbon. She's verified.</h2></FI>
         <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>Here's what her Tuesday looks like.</p></FI>
@@ -1117,7 +1142,7 @@ export default function Deck() {
       </Sl>
 
       {/* 9: WHY SEPARATION */}
-      <Sl i={9}>
+      <Sl i={10}>
         <FI><Tag>Why it works</Tag></FI>
         <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>Three walls kill every UBI.</h2></FI>
         <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>Two tokens break all of them.</p></FI>
@@ -1141,7 +1166,7 @@ export default function Deck() {
       </Sl>
 
       {/* 10: ADOPTION */}
-      <Sl i={10}>
+      <Sl i={11}>
         <FI><Tag>The strategy</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 6 }}>It doesn't launch as UBI.</h2></FI>
         <FI d={200}><p style={{ fontSize: "clamp(15px, 1.3vw, 18px)", color: B.orange, fontWeight: 600, marginBottom: 24 }}>That's the entire trick.</p></FI>
@@ -1177,7 +1202,7 @@ export default function Deck() {
       </Sl>
 
       {/* 11: SECURITY */}
-      <Sl i={11}>
+      <Sl i={12}>
         <FI><Tag>Unbreakable identity</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 24 }}>One person. One wallet. Enforced by math.</h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 14, maxWidth: 620, width: "100%", marginBottom: 20, textAlign: "left" }}>
@@ -1204,15 +1229,15 @@ export default function Deck() {
       </Sl>
 
       {/* 12: FRAUD */}
-      <Sl i={12}>
+      <Sl i={13}>
         <FI><Tag>Protocol-level justice</Tag></FI>
         <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>Fraud is caught and surgically removed.</h2></FI>
         <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>Stake BRN to challenge. Only the tainted fraction is revoked. Clean money stays.</p></FI>
-        <FI d={400}><FraudViz active={s === 12} mobile={m} /></FI>
+        <FI d={400}><FraudViz active={s === 13} mobile={m} /></FI>
       </Sl>
 
       {/* 13: GOVERNANCE */}
-      <Sl i={13}>
+      <Sl i={14}>
         <FI><Tag>Self-amending democracy</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Every parameter is voted on. Including the voting rules.</h2></FI>
         <div style={{ maxWidth: 640, width: "100%", textAlign: "left" }}>
@@ -1247,7 +1272,7 @@ export default function Deck() {
       </Sl>
 
       {/* 14: CONSENSUS */}
-      <Sl i={14}>
+      <Sl i={15}>
         <FI><Tag>How blocks confirm</Tag></FI>
         <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>Open Representative Voting.</h2></FI>
         <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>No mining. No staking lottery. Sub-second finality.</p></FI>
@@ -1269,7 +1294,7 @@ export default function Deck() {
       </Sl>
 
       {/* 15: INFRASTRUCTURE */}
-      <Sl i={15}>
+      <Sl i={16}>
         <FI><Tag>The machine</Tag></FI>
         <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 28 }}>Block lattice. Zero fees. Sub-second.</h2></FI>
         <FI d={250}><div style={{ maxWidth: 720, width: "100%", textAlign: "left" }}>
@@ -1307,7 +1332,7 @@ export default function Deck() {
       </Sl>
 
       {/* 16: ROADMAP */}
-      <Sl i={16}>
+      <Sl i={17}>
         <FI><Tag>Where we are</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Built, running, open.</h2></FI>
         {/* Step indicators */}
@@ -1367,7 +1392,7 @@ export default function Deck() {
       </Sl>
 
       {/* 17: TEAM */}
-      <Sl i={17}>
+      <Sl i={18}>
         <FI><Tag>Who's building this</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>One builder. Open-source. MIT license.</h2></FI>
         <FI d={200}><div style={{ maxWidth: 540, width: "100%", textAlign: "center" }}>
@@ -1408,7 +1433,7 @@ export default function Deck() {
       </Sl>
 
       {/* 18: JOIN THE BUILD */}
-      <Sl i={18}>
+      <Sl i={19}>
         <FI><Tag>Join the build</Tag></FI>
         <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>What BURST needs</h2></FI>
         <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>No token sale. No VC. Just people who want to build it.</p></FI>
@@ -1440,7 +1465,7 @@ export default function Deck() {
       </Sl>
 
       {/* 19: CLOSING */}
-      <Sl i={19}>
+      <Sl i={20}>
         <div style={{ textAlign: "center", maxWidth: 700, margin: "0 auto" }}>
           <FI d={0}><p style={{ fontSize: "clamp(14px, 1.4vw, 19px)", color: B.gray, lineHeight: 1.85, marginBottom: 28 }}>
             Every monetary system in human history has made the same invisible choice.
