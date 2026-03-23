@@ -46,7 +46,7 @@ const server = createServer((req, res) => {
 
 // WebSocket on same server
 let currentSlide = 0;
-let adminConnected = false;
+let currentHp = 0;
 const clients = new Set();
 const wss = new WebSocketServer({ server });
 
@@ -70,7 +70,7 @@ wss.on("connection", (ws) => {
   // Only tell client about presenter if admin is actually connected
   const live = hasAdmin();
   ws.send(JSON.stringify({ type: "presence", live }));
-  if (live) ws.send(JSON.stringify({ type: "sync", slide: currentSlide }));
+  if (live) ws.send(JSON.stringify({ type: "sync", slide: currentSlide, hp: currentHp }));
 
   ws.on("message", (raw) => {
     let msg;
@@ -89,9 +89,10 @@ wss.on("connection", (ws) => {
 
     if (msg.type === "slide" && ws.isAdmin) {
       currentSlide = msg.slide;
+      currentHp = msg.hp ?? 0;
       for (const c of clients) {
         if (c !== ws && c.readyState === 1) {
-          c.send(JSON.stringify({ type: "sync", slide: currentSlide }));
+          c.send(JSON.stringify({ type: "sync", slide: currentSlide, hp: currentHp }));
         }
       }
     }

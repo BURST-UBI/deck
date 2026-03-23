@@ -672,6 +672,7 @@ function usePresenterSync() {
   const [following, setFollowing] = useState(false);
   const [presenterLive, setPresenterLive] = useState(false);
   const [remoteSlide, setRemoteSlide] = useState(null);
+  const [remoteHp, setRemoteHp] = useState(0);
   const [showLogin, setShowLogin] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const wsRef = useRef(null);
@@ -688,7 +689,7 @@ function usePresenterSync() {
       wsRef.current = ws;
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
-        if (msg.type === "sync") setRemoteSlide(msg.slide);
+        if (msg.type === "sync") { setRemoteSlide(msg.slide); setRemoteHp(msg.hp ?? 0); }
         if (msg.type === "presence") {
           setPresenterLive(msg.live);
           if (!msg.live) setFollowing(false);
@@ -721,13 +722,13 @@ function usePresenterSync() {
     }
   }, []);
 
-  const pushSlide = useCallback((slide) => {
+  const pushState = useCallback((slide, hp) => {
     if (isAdmin && wsRef.current && wsRef.current.readyState === 1) {
-      wsRef.current.send(JSON.stringify({ type: "slide", slide }));
+      wsRef.current.send(JSON.stringify({ type: "slide", slide, hp }));
     }
   }, [isAdmin]);
 
-  return { isAdmin, following, setFollowing, presenterLive, remoteSlide, showLogin, setShowLogin, login, loginError, setLoginError, pushSlide };
+  return { isAdmin, following, setFollowing, presenterLive, remoteSlide, remoteHp, showLogin, setShowLogin, login, loginError, setLoginError, pushState };
 }
 
 export default function Deck() {
@@ -740,24 +741,26 @@ export default function Deck() {
 
   const sync = usePresenterSync();
 
-  // Admin: push slide changes to server
+  // Admin: push slide + hp changes to server
   useEffect(() => {
-    if (sync.isAdmin) sync.pushSlide(s);
-  }, [s, sync.isAdmin]);
+    if (sync.isAdmin) sync.pushState(s, hp);
+  }, [s, hp, sync.isAdmin]);
 
-  // Follower: auto-navigate when remote slide changes
+  // Follower: auto-navigate when remote slide/hp changes
   useEffect(() => {
     if (!sync.isAdmin && sync.following && sync.presenterLive && sync.remoteSlide != null) {
       setS(sync.remoteSlide);
-      setHp(0);
+      setHp(sync.remoteHp);
     }
-  }, [sync.remoteSlide, sync.following, sync.isAdmin, sync.presenterLive]);
+  }, [sync.remoteSlide, sync.remoteHp, sync.following, sync.isAdmin, sync.presenterLive]);
 
-  // Auto-follow when presenter goes live
+  // Auto-follow only when presenter first goes live (not on every sync)
+  const wasLive = useRef(false);
   useEffect(() => {
-    if (!sync.isAdmin && sync.presenterLive) {
+    if (!sync.isAdmin && sync.presenterLive && !wasLive.current) {
       sync.setFollowing(true);
     }
+    wasLive.current = sync.presenterLive;
   }, [sync.presenterLive]);
 
   const next = useCallback(() => {
@@ -1465,7 +1468,7 @@ export default function Deck() {
         </div>
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: m ? "8px 0 10px" : "10px 0 12px", gap: m ? 4 : 6 }}>
           {Array.from({ length: TOTAL }).map((_, i) => (
-            <button key={i} onClick={(e) => { e.stopPropagation(); setS(i); setHp(0); }}
+            <button key={i} onClick={(e) => { e.stopPropagation(); setS(i); setHp(0); sync.setFollowing(false); }}
               style={{
                 width: s === i ? (m ? 16 : 24) : (m ? 5 : 6), height: m ? 5 : 6, borderRadius: 3, border: "none",
                 background: s === i ? B.green : i < s ? `${B.green}44` : `${B.dim}44`,
@@ -1521,7 +1524,7 @@ export default function Deck() {
             {SLIDE_TITLES.map((title, i) => (
               <button
                 key={i}
-                onClick={(e) => { e.stopPropagation(); setS(i); setHp(0); setMenu(false); }}
+                onClick={(e) => { e.stopPropagation(); setS(i); setHp(0); setMenu(false); sync.setFollowing(false); }}
                 style={{
                   display: "flex", alignItems: "center", gap: 10,
                   padding: "10px 14px", borderRadius: 12, cursor: "pointer",
