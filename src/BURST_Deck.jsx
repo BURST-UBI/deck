@@ -310,7 +310,7 @@ function Spectrum({ active, mobile }) {
     return Array.from({ length: 60 }).map((_, i) => {
       const p = i / 60;
       const base = Math.pow(p, 2 + (1 - r / 100) * 4);
-      const decay = e < 90 ? Math.max(0.08, 1 - (1 - e / 100) * p * 2.5) : 1;
+      const decay = Math.max(0.08, 1 - (1 - e / 100) * p * 2.5);
       const ubi = (r / 100) * 0.35;
       return Math.min(1, base * decay + ubi);
     });
