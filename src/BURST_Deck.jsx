@@ -975,34 +975,30 @@ export default function Deck() {
       {/* 3: AI ACCELERATION */}
       <Sl i={3}>
         <FI><Tag color={B.orange}>The accelerant</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(m ? 30 : 40), color: B.white, marginBottom: 6 }}>AI is making this urgent.</h2></FI>
-        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>Not because it will destroy all jobs. Because of where the money goes when it does.</p></FI>
-        <div style={{ maxWidth: 620, width: "100%", textAlign: "left" }}>
-          <FI d={350}><div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 16 }}>
-            <GlassCard accent={B.orange} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.orange}` }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: B.orange, fontFamily: "'JetBrains Mono', monospace" }}>14%</div>
-              <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6, marginTop: 6 }}>of companies have already cut headcount due to AI (ResumeBuilder, 2024)</div>
-            </GlassCard>
-            <GlassCard accent={B.red} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.red}` }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: B.red, fontFamily: "'JetBrains Mono', monospace" }}>300M</div>
-              <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6, marginTop: 6 }}>jobs exposed to AI automation globally (Goldman Sachs, 2023)</div>
-            </GlassCard>
-          </div></FI>
-          <FI d={500}>
-            <GlassCard accent={B.red} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.red}`, marginBottom: 12 }}>
-              <div style={{ fontSize: m ? 12 : 13, color: B.text, lineHeight: 1.7 }}>
-                When AI makes a company 10x more productive, the stock price goes up. <span style={{ color: B.red, fontWeight: 700 }}>The displaced workers don't get a share of that.</span>
-              </div>
-            </GlassCard>
-          </FI>
-          <FI d={650}>
-            <GlassCard accent={B.green} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.green}` }}>
-              <div style={{ fontSize: m ? 12 : 13, color: B.text, lineHeight: 1.7 }}>
-                Tax-funded safety nets require political will that shrinks as the tax base shrinks. <span style={{ color: B.green, fontWeight: 700 }}>BURST doesn't depend on anyone's generosity. The floor is protocol-level.</span>
-              </div>
-            </GlassCard>
-          </FI>
+        <FI d={100}><h2 style={{ ...H(m ? 30 : 40), color: B.white, marginBottom: 24 }}>AI doesn't create poverty.<br /><span style={{ color: B.orange }}>It concentrates wealth faster.</span></h2></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 12, maxWidth: 640, width: "100%", marginBottom: 20 }}>
+          {[
+            { n: "300M", l: "jobs exposed", src: "Goldman Sachs", c: B.red },
+            { n: "14%", l: "of firms already cut staff", src: "ResumeBuilder", c: B.orange },
+            { n: "72%", l: "of gains go to top 10%", src: "WID, 2024", c: B.gold },
+            { n: "0%", l: "went to a new safety net", src: "", c: B.muted },
+          ].map((s_, i) => (
+            <FI key={i} d={250 + i * 100}>
+              <GlassCard accent={s_.c} style={{ padding: "14px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: m ? 22 : 28, fontWeight: 800, color: s_.c, fontFamily: "'JetBrains Mono', monospace" }}>{s_.n}</div>
+                <div style={{ fontSize: 10, color: B.gray, marginTop: 4, lineHeight: 1.4 }}>{s_.l}</div>
+                {s_.src && <div style={{ fontSize: 8, color: B.muted, marginTop: 4 }}>{s_.src}</div>}
+              </GlassCard>
+            </FI>
+          ))}
         </div>
+        <FI d={700}><p style={{ fontSize: m ? 14 : 16, color: B.text, textAlign: "center", maxWidth: 500, lineHeight: 1.7 }}>
+          Productivity rises. Profits rise. Headcount falls.<br />
+          <span style={{ color: B.red, fontWeight: 700 }}>There is no mechanism to share the gains.</span>
+        </p></FI>
+        <FI d={900}><p style={{ fontSize: m ? 13 : 14, color: B.green, fontWeight: 600, textAlign: "center", marginTop: 12 }}>
+          Unless you build one into the money itself.
+        </p></FI>
       </Sl>
 
       {/* 4: COMPETITORS */}
