@@ -975,7 +975,7 @@ export default function Deck() {
       {/* 3: AI ACCELERATION */}
       <Sl i={3}>
         <FI><Tag color={B.orange}>The accelerant</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(m ? 30 : 40), color: B.white, marginBottom: 24 }}>AI doesn't create poverty.<br /><span style={{ color: B.orange }}>It concentrates wealth faster.</span></h2></FI>
+        <FI d={100}><h2 style={{ ...H(m ? 30 : 40), color: B.white, marginBottom: 24 }}>AI will generate unprecedented wealth.<br /><span style={{ color: B.orange }}>Almost none of it will reach you.</span></h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 12, maxWidth: 640, width: "100%", marginBottom: 20 }}>
           {[
             { n: "300M", l: "jobs exposed", src: "Goldman Sachs", c: B.red },
@@ -992,12 +992,20 @@ export default function Deck() {
             </FI>
           ))}
         </div>
-        <FI d={700}><p style={{ fontSize: m ? 14 : 16, color: B.text, textAlign: "center", maxWidth: 500, lineHeight: 1.7 }}>
-          Productivity rises. Profits rise. Headcount falls.<br />
-          <span style={{ color: B.red, fontWeight: 700 }}>There is no mechanism to share the gains.</span>
-        </p></FI>
-        <FI d={900}><p style={{ fontSize: m ? 13 : 14, color: B.green, fontWeight: 600, textAlign: "center", marginTop: 12 }}>
-          Unless you build one into the money itself.
+        <FI d={700}><div style={{ maxWidth: 540, width: "100%", textAlign: "left" }}>
+          <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "auto 1fr", gap: 12 }}>
+            <GlassCard accent={B.red} style={{ padding: "14px 18px", borderLeft: `3px solid ${B.red}` }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: B.red, fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>WHY NOT GOVERNMENT?</div>
+              <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>Finland tried UBI. Cancelled after 2 years. Spain's minimum income missed 80% of targets. Every program depends on the next election cycle.</div>
+            </GlassCard>
+            <GlassCard accent={B.green} style={{ padding: "14px 18px", borderLeft: `3px solid ${B.green}` }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: B.green, fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>WHY PROTOCOL?</div>
+              <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>No one votes to turn off TCP/IP. A floor built into money works the same way — it runs because the network runs.</div>
+            </GlassCard>
+          </div>
+        </div></FI>
+        <FI d={900}><p style={{ fontSize: m ? 13 : 14, color: B.green, fontWeight: 600, textAlign: "center", marginTop: 16 }}>
+          The safety net can't depend on the people who profit from removing it.
         </p></FI>
       </Sl>
 
