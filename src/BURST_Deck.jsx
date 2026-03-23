@@ -974,27 +974,44 @@ export default function Deck() {
 
       {/* 3: AI ACCELERATION */}
       <Sl i={3}>
-        <FI><Tag color={B.orange}>The accelerant</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>AI doesn't just take jobs.</h2></FI>
-        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>It concentrates the returns of replacing them.</p></FI>
-        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr 1fr", gap: 12, maxWidth: 720, width: "100%", textAlign: "left" }}>
-          {[
-            { tag: "TODAY", point: "One company replaces 10,000 workers", detail: "The productivity gains flow to shareholders, not the displaced. GDP rises. Median income doesn't.", color: B.orange },
-            { tag: "TOMORROW", point: "Tax-funded UBI can't keep up", detail: "As the taxable labor base shrinks, the political will to redistribute shrinks with it. The winners write the rules.", color: B.red },
-            { tag: "BURST", point: "The floor is protocol-level", detail: "BRN accrues to every verified human by design. No tax. No vote. No politician required. It just runs.", color: B.green },
-          ].map((c, i) => (
-            <FI key={i} d={300 + i * 120}>
-              <GlassCard accent={c.color} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${c.color}` }}>
-                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: c.color, marginBottom: 6 }}>{c.tag}</div>
-                <div style={{ fontSize: m ? 13 : 14, fontWeight: 700, color: B.white, lineHeight: 1.4, marginBottom: 8 }}>{c.point}</div>
-                <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>{c.detail}</div>
-              </GlassCard>
-            </FI>
-          ))}
+        <FI><Tag color={B.orange}>It's about to get worse</Tag></FI>
+        <FI d={100}><h2 style={{ ...H(m ? 30 : 40), color: B.white, marginBottom: 20 }}>Your job is next.</h2></FI>
+        <div style={{ maxWidth: 620, width: "100%", textAlign: "left" }}>
+          <FI d={250}><div style={{ marginBottom: 20 }}>
+            {[
+              { job: "Translators", status: "Already replaced", color: B.red },
+              { job: "Customer support", status: "Being replaced", color: B.orange },
+              { job: "Junior developers", status: "Being replaced", color: B.orange },
+              { job: "Designers", status: "Being replaced", color: B.orange },
+              { job: "Accountants", status: "Next", color: B.gold },
+              { job: "Lawyers", status: "Next", color: B.gold },
+              { job: "Doctors", status: "Soon", color: B.muted },
+            ].map((r, i) => (
+              <div key={i} style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "8px 16px", borderRadius: 8, marginBottom: 4,
+                background: i % 2 === 0 ? `${B.dim}08` : "transparent",
+              }}>
+                <span style={{ fontSize: m ? 12 : 13, color: B.text }}>{r.job}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: r.color, fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase", letterSpacing: 1 }}>{r.status}</span>
+              </div>
+            ))}
+          </div></FI>
+          <FI d={500}>
+            <GlassCard accent={B.red} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.red}`, marginBottom: 12 }}>
+              <div style={{ fontSize: m ? 12 : 13, color: B.text, lineHeight: 1.7 }}>
+                When one AI replaces 10,000 workers, the profit goes to shareholders. <span style={{ color: B.red, fontWeight: 700 }}>You get a LinkedIn notification.</span>
+              </div>
+            </GlassCard>
+          </FI>
+          <FI d={650}>
+            <GlassCard accent={B.green} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.green}` }}>
+              <div style={{ fontSize: m ? 12 : 13, color: B.text, lineHeight: 1.7 }}>
+                Tax-funded UBI requires politicians to vote against their donors. <span style={{ color: B.green, fontWeight: 700 }}>BURST doesn't ask permission. The floor is built into the protocol.</span>
+              </div>
+            </GlassCard>
+          </FI>
         </div>
-        <FI d={700}><p style={{ fontSize: 12, color: B.muted, fontStyle: "italic", marginTop: 16, textAlign: "center" }}>
-          This isn't a prediction. It's already happening — and it will only accelerate.
-        </p></FI>
       </Sl>
 
       {/* 4: COMPETITORS */}
