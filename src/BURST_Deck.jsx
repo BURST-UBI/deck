@@ -1612,33 +1612,56 @@ export default function Deck() {
 
       {/* Follower LIVE badge + rejoin */}
       {!sync.isAdmin && sync.presenterLive && (
-        <div style={{
-          position: "absolute", top: m ? 12 : 16, left: m ? 12 : 20, zIndex: 30,
-          display: "flex", alignItems: "center", gap: 8,
-        }}>
-          {sync.following ? (
-            <div style={{
-              padding: "5px 12px", borderRadius: 8,
-              background: `${B.red}15`, border: `1px solid ${B.red}33`,
-              fontSize: 10, fontWeight: 700, color: B.red, letterSpacing: 1,
-              fontFamily: "'JetBrains Mono', monospace",
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: B.red, animation: "pulse 1.5s infinite" }} />
-              LIVE
-            </div>
-          ) : (
-            <button
-              onClick={(e) => { e.stopPropagation(); sync.setFollowing(true); }}
-              style={{
-                padding: "5px 12px", borderRadius: 8, cursor: "pointer",
-                background: `${B.dim}15`, border: `1px solid ${B.dim}33`,
-                fontSize: 10, fontWeight: 700, color: B.muted, letterSpacing: 1,
+        <>
+          {/* Top badge */}
+          <div style={{
+            position: "absolute", top: m ? 12 : 16, left: m ? 12 : 20, zIndex: 30,
+            display: "flex", alignItems: "center", gap: 8,
+          }}>
+            {sync.following ? (
+              <div style={{
+                padding: "6px 14px", borderRadius: 10,
+                background: `${B.red}15`, border: `1px solid ${B.red}44`,
+                fontSize: 11, fontWeight: 700, color: B.red, letterSpacing: 1,
                 fontFamily: "'JetBrains Mono', monospace",
-              }}
-            >FOLLOW PRESENTER</button>
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: B.red, animation: "pulse 1.5s infinite", boxShadow: `0 0 8px ${B.red}66` }} />
+                LIVE — presenter is controlling this view
+              </div>
+            ) : (
+              <button
+                onClick={(e) => { e.stopPropagation(); sync.setFollowing(true); }}
+                style={{
+                  padding: "8px 16px", borderRadius: 10, cursor: "pointer",
+                  background: `linear-gradient(135deg, ${B.green}15, ${B.green}08)`,
+                  border: `1px solid ${B.green}44`,
+                  fontSize: 11, fontWeight: 700, color: B.green, letterSpacing: 1,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  animation: "glowPulse 2s infinite",
+                  display: "flex", alignItems: "center", gap: 8,
+                }}
+              >
+                <span style={{ fontSize: 14 }}>↩</span>
+                REJOIN PRESENTER
+              </button>
+            )}
+          </div>
+          {/* Bottom toast when viewer breaks free */}
+          {!sync.following && (
+            <div style={{
+              position: "absolute", bottom: 50, left: "50%", transform: "translateX(-50%)", zIndex: 30,
+              padding: "10px 20px", borderRadius: 12,
+              background: "rgba(12,15,22,0.9)", border: `1px solid ${B.dim}33`,
+              backdropFilter: "blur(12px)",
+              fontSize: 11, color: B.muted, textAlign: "center",
+              animation: "sIn 500ms both",
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              You're browsing freely — click <span style={{ color: B.green, fontWeight: 700 }}>REJOIN PRESENTER</span> to sync back
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
