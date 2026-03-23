@@ -440,12 +440,14 @@ function FraudViz({ active, mobile }) {
   // Steps: 0=appear, 1=fraud detected, 2=trace origins, 3=show taint bars,
   // 4=revoke Carol, 5=resolve Alice, 6=resolve Bob, 7=healed
   const [step, setStep] = useState(-1);
+  const [runKey, setRunKey] = useState(0);
   useEffect(() => {
     if (!active) { setStep(-1); return; }
+    setStep(-1);
     const delays = [600, 2200, 4000, 5800, 7400, 8200, 9000, 10600];
     const timers = delays.map((d, i) => setTimeout(() => setStep(i), d));
     return () => timers.forEach(clearTimeout);
-  }, [active]);
+  }, [active, runKey]);
 
   const bg = "rgba(12,15,22,0.85)";
   const tr = "all 1.2s cubic-bezier(.25,.46,.45,.94)";
@@ -606,6 +608,11 @@ function FraudViz({ active, mobile }) {
             <span style={{ color: B.gray }}>{c.chain}:</span> {c.verdict}
           </div>
         ))}
+        {step >= 7 && <button onClick={(e) => { e.stopPropagation(); setRunKey(k => k + 1); }} style={{
+          padding: "6px 12px", borderRadius: 8, fontSize: mobile ? 9 : 10, fontWeight: 700,
+          background: `${B.dim}15`, border: `1px solid ${B.dim}33`, color: B.muted,
+          cursor: "pointer", transition: "all .2s",
+        }}>↻ replay</button>}
       </div>
     </div>
   );
@@ -659,6 +666,63 @@ const SLIDE_TITLES = [
   "Governance", "Consensus", "Infrastructure", "Roadmap", "Team", "Join the build", "Closing",
 ];
 
+/* --- Sync hook --- */
+function usePresenterSync() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [remoteSlide, setRemoteSlide] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [loginError, setLoginError] = useState(false);
+  const wsRef = useRef(null);
+  const reconnectRef = useRef(null);
+
+  const WS_URL = typeof window !== "undefined"
+    ? (window.location.protocol === "https:" ? "wss:" : "ws:") + "//" + window.location.host
+    : "ws://localhost:10000";
+
+  const connect = useCallback(() => {
+    if (wsRef.current && wsRef.current.readyState <= 1) return;
+    try {
+      const ws = new WebSocket(WS_URL);
+      wsRef.current = ws;
+      ws.onmessage = (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === "sync") setRemoteSlide(msg.slide);
+        if (msg.type === "auth") {
+          if (msg.ok) { setIsAdmin(true); setShowLogin(false); setLoginError(false); }
+          else setLoginError(true);
+        }
+      };
+      ws.onclose = () => {
+        reconnectRef.current = setTimeout(connect, 3000);
+      };
+      ws.onerror = () => ws.close();
+    } catch { /* silently fail if no server */ }
+  }, [WS_URL]);
+
+  useEffect(() => {
+    connect();
+    return () => {
+      clearTimeout(reconnectRef.current);
+      if (wsRef.current) wsRef.current.close();
+    };
+  }, [connect]);
+
+  const login = useCallback((key) => {
+    if (wsRef.current && wsRef.current.readyState === 1) {
+      wsRef.current.send(JSON.stringify({ type: "auth", key }));
+    }
+  }, []);
+
+  const pushSlide = useCallback((slide) => {
+    if (isAdmin && wsRef.current && wsRef.current.readyState === 1) {
+      wsRef.current.send(JSON.stringify({ type: "slide", slide }));
+    }
+  }, [isAdmin]);
+
+  return { isAdmin, following, setFollowing, remoteSlide, showLogin, setShowLogin, login, loginError, setLoginError, pushSlide };
+}
+
 export default function Deck() {
   const [s, setS] = useState(0);
   const [hp, setHp] = useState(0);
@@ -667,19 +731,45 @@ export default function Deck() {
   const TOTAL = 20;
   const touchRef = useRef(null);
 
+  const sync = usePresenterSync();
+
+  // Admin: push slide changes to server
+  useEffect(() => {
+    if (sync.isAdmin) sync.pushSlide(s);
+  }, [s, sync.isAdmin]);
+
+  // Follower: auto-navigate when remote slide changes
+  useEffect(() => {
+    if (!sync.isAdmin && sync.following && sync.remoteSlide != null) {
+      setS(sync.remoteSlide);
+      setHp(0);
+    }
+  }, [sync.remoteSlide, sync.following, sync.isAdmin]);
+
+  // Auto-follow on first sync if not admin
+  useEffect(() => {
+    if (!sync.isAdmin && sync.remoteSlide != null && !sync.following) {
+      sync.setFollowing(true);
+    }
+  }, [sync.remoteSlide]);
+
   const next = useCallback(() => {
     if (s === 1 && hp < 1) { setHp((p) => p + 1); return; }
     setS((p) => Math.min(p + 1, TOTAL - 1));
     setHp(0);
-  }, [s, hp]);
+    if (sync.following) sync.setFollowing(false);
+  }, [s, hp, sync.following]);
 
   const prev = useCallback(() => {
     setS((p) => Math.max(p - 1, 0));
     setHp(0);
-  }, []);
+    if (sync.following) sync.setFollowing(false);
+  }, [sync.following]);
 
   useEffect(() => {
     const handler = (ev) => {
+      if (ev.ctrlKey && ev.shiftKey && ev.key === "A") { ev.preventDefault(); sync.setShowLogin(true); return; }
+      if (sync.showLogin) return;
       if (ev.key === "?" || ev.key === "Escape") { ev.preventDefault(); setMenu((p) => !p); return; }
       if (menu) return;
       if (["ArrowRight", " ", "Enter"].includes(ev.key)) { ev.preventDefault(); next(); }
@@ -702,8 +792,13 @@ export default function Deck() {
     touchRef.current = null;
   }, [next, prev]);
 
+  const prevSlide = useRef(0);
+  useEffect(() => { prevSlide.current = s; }, [s]);
+
   const Sl = ({ i, children }) => {
     const active = s === i;
+    const dir = s > prevSlide.current ? 1 : -1;
+    const away = i < s ? -1 : i > s ? 1 : 0;
     return (
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0, bottom: 40,
@@ -711,8 +806,8 @@ export default function Deck() {
         padding: m ? "24px 16px 16px" : "clamp(24px, 5vw, 80px)",
         textAlign: "center",
         opacity: active ? 1 : 0,
-        transform: active ? "none" : `translateY(20px) scale(0.98)`,
-        transition: "opacity .5s, transform .7s cubic-bezier(.16,1,.3,1)",
+        transform: active ? "none" : `translateX(${away * 40}px) scale(0.97)`,
+        transition: "opacity .45s cubic-bezier(.4,0,.2,1), transform .55s cubic-bezier(.16,1,.3,1)",
         pointerEvents: active ? "auto" : "none",
         zIndex: active ? 1 : 0,
         overflowY: "auto",
@@ -758,6 +853,7 @@ export default function Deck() {
         @keyframes sIn { from { opacity: 0; transform: translateY(var(--dy, 24px)); } to { opacity: 1; transform: none; } }
         @keyframes revealUp { from { opacity: 0; transform: translateY(40px) scale(0.96); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
         @keyframes pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .03; } 50% { transform: scale(1.15); opacity: .08; } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
@@ -791,6 +887,11 @@ export default function Deck() {
             Your economic life was determined by a dice roll you never made.
           </p></FI>
           <BirthLottery active={s === 0} mobile={m} />
+          {s === 0 && <div style={{
+            position: "absolute", bottom: 60, left: "50%", transform: "translateX(-50%)",
+            fontSize: 11, color: B.muted, fontFamily: "'JetBrains Mono', monospace",
+            animation: "fadeIn .5s 2s both, fadeOut 1s 5s both",
+          }}>{m ? "swipe →" : "press → to begin"}</div>}
         </div>
       </Sl>
 
@@ -863,43 +964,25 @@ export default function Deck() {
       <Sl i={3}>
         <FI><Tag>Why previous attempts failed</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>They solved one problem and created another.</h2></FI>
-        <FI d={200}><div style={{ maxWidth: 720, width: "100%", overflowX: "auto", borderRadius: 14, border: `1px solid ${B.dim}18`, background: "rgba(12,15,22,0.5)", backdropFilter: "blur(12px)" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: m ? 11 : 12 }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${B.dim}22` }}>
-                {[
-                  { label: "", align: "left", color: B.gray },
-                  { label: "Approach", align: "left", color: B.gray },
-                  { label: "What broke", align: "center", color: B.red },
-                  { label: "BURST answer", align: "center", color: B.green },
-                ].map((h, i) => (
-                  <th key={i} style={{
-                    textAlign: h.align, padding: m ? "12px 10px" : "14px 16px", color: h.color,
-                    fontWeight: 700, fontSize: 9, textTransform: "uppercase", letterSpacing: 2,
-                  }}>{h.label}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { n: "Worldcoin", approach: "Iris scan → identity", broke: "Biometric data harvested for a token that may fail", burst: "Identity is modular — biometrics, trust graphs, gov ID. Method is replaceable." },
-                { n: "GoodDollar", approach: "DeFi yield → fund UBI", broke: "Yields collapsed 2022. Income vanished.", burst: "BRN accrues from time, not yields. No external dependency." },
-                { n: "Circles UBI", approach: "Personal currencies in trust circles", broke: "Move cities, lose your wealth. Not fungible.", burst: "One universal currency. TRST is transferable anywhere." },
-                { n: "Gov. UBI", approach: "Tax revenue → direct payments", broke: "One election and it disappears.", burst: "Protocol-level. No politician can turn it off." },
-              ].map((row, i) => (
-                <tr key={i} style={{ borderBottom: i < 3 ? `1px solid ${B.dim}10` : "none", transition: "background .2s" }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = `${B.dim}10`}
-                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                >
-                  <td style={{ padding: m ? "12px 10px" : "14px 16px", fontWeight: 700, color: B.white, whiteSpace: "nowrap", fontSize: m ? 11 : 13 }}>{row.n}</td>
-                  <td style={{ padding: m ? "12px 10px" : "14px 16px", color: B.gray }}>{row.approach}</td>
-                  <td style={{ padding: m ? "12px 10px" : "14px 16px", color: B.red, fontWeight: 600, textAlign: "center" }}>{row.broke}</td>
-                  <td style={{ padding: m ? "12px 10px" : "14px 16px", color: B.green, textAlign: "center" }}>{row.burst}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, maxWidth: 680, width: "100%", textAlign: "left" }}>
+          {[
+            { n: "Worldcoin", approach: "Iris scan → identity", broke: "Biometric data harvested for a token that may fail.", burst: "Identity is modular — method is replaceable.", color: B.purple },
+            { n: "GoodDollar", approach: "DeFi yield → fund UBI", broke: "Yields collapsed 2022. Income vanished.", burst: "BRN accrues from time. No external dependency.", color: B.blue },
+            { n: "Circles UBI", approach: "Personal currencies in trust circles", broke: "Move cities, lose your wealth. Not fungible.", burst: "One universal currency. TRST transfers anywhere.", color: B.orange },
+            { n: "Gov. UBI", approach: "Tax revenue → direct payments", broke: "One election and it disappears.", burst: "Protocol-level. No politician can turn it off.", color: B.green },
+          ].map((row, i) => (
+            <FI key={i} d={200 + i * 100}>
+              <GlassCard accent={row.color} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${row.color}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                  <span style={{ fontSize: m ? 13 : 15, fontWeight: 700, color: B.white }}>{row.n}</span>
+                  <span style={{ fontSize: 10, color: B.muted, fontFamily: "'JetBrains Mono', monospace" }}>{row.approach}</span>
+                </div>
+                <div style={{ fontSize: 11, color: B.red, lineHeight: 1.6, marginBottom: 8 }}>{row.broke}</div>
+                <div style={{ fontSize: 11, color: B.green, lineHeight: 1.6, fontWeight: 600 }}>{row.burst}</div>
+              </GlassCard>
+            </FI>
+          ))}
+        </div>
       </Sl>
 
       {/* 4: TWO-KNOB INSIGHT */}
@@ -1024,26 +1107,25 @@ export default function Deck() {
       {/* 9: WHY SEPARATION */}
       <Sl i={9}>
         <FI><Tag>Why it works</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 28 }}>Three walls kill every UBI. Two tokens break all of them.</h2></FI>
-        {[
-          { q: "UBI inflates its own currency", bad: "GoodDollar mints tokens to fund income. More tokens, same goods, prices rise. You're diluting the thing you're distributing.", good: "BRN is never minted — it's a counter that ticks up with time. When spent, BRN is destroyed and TRST is created 1:1 in the vendor's wallet. Total supply = total real activity.", icon: "📉" },
-          { q: "Free money is indistinguishable from earned money", bad: "Once it's in your wallet, a dollar from work looks identical to a dollar from a handout. Markets can't price the difference.", good: "BRN can only be spent, never sent. TRST can only be received from a spend. If you hold TRST, someone paid you for something. Unforgeable proof of contribution.", icon: "🔍" },
-          { q: "Hoarding recreates the inequality", bad: "Every currency without expiry trends toward concentration. Demurrage tried expiring everything — but that punishes the poor for saving.", good: "Only TRST expires (period set by vote). Your BRN floor never decays. Hoarded TRST cycles back into circulation. Wealth becomes a flow, not a dam.", icon: "⚖️" },
-        ].map((c, i) => (
-          <FI key={i} d={200 + i * 130}>
-            <GlassCard accent={B.green} style={{ padding: "18px 22px", marginBottom: 12, maxWidth: 680, width: "100%", textAlign: "left" }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: B.white, marginBottom: 12 }}>{c.icon} {c.q}</div>
-              <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: m ? 8 : 12 }}>
-                <div style={{ fontSize: 11, color: B.gray, padding: "12px 16px", background: `${B.red}08`, borderRadius: 12, borderLeft: `2px solid ${B.red}44`, lineHeight: 1.7 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: B.red, marginBottom: 6, textTransform: "uppercase", letterSpacing: 2 }}>The problem</div>{c.bad}
-                </div>
-                <div style={{ fontSize: 11, color: B.text, padding: "12px 16px", background: `${B.green}08`, borderRadius: 12, borderLeft: `2px solid ${B.green}`, lineHeight: 1.7 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: B.green, marginBottom: 6, textTransform: "uppercase", letterSpacing: 2 }}>BURST</div>{c.good}
-                </div>
-              </div>
-            </GlassCard>
-          </FI>
-        ))}
+        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>Three walls kill every UBI.</h2></FI>
+        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>Two tokens break all of them.</p></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr 1fr", gap: 12, maxWidth: 720, width: "100%", textAlign: "left" }}>
+          {[
+            { tag: "WALL 1", wall: "Inflation", problem: "Minting tokens to fund income dilutes the currency.", fix: "BRN is a counter, never minted. Destroyed on spend. TRST created 1:1 from real activity.", color: B.orange },
+            { tag: "WALL 2", wall: "Indistinguishability", problem: "Free money looks identical to earned money.", fix: "BRN can only be spent. TRST can only be received. Holding TRST = proof someone paid you.", color: B.blue },
+            { tag: "WALL 3", wall: "Hoarding", problem: "Without expiry, wealth concentrates.", fix: "Only TRST expires (voted period). BRN floor never decays. Wealth flows, not dams.", color: B.green },
+          ].map((c, i) => (
+            <FI key={i} d={300 + i * 120}>
+              <GlassCard accent={c.color} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${c.color}` }}>
+                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: c.color, marginBottom: 6 }}>{c.tag}</div>
+                <div style={{ fontSize: m ? 13 : 14, fontWeight: 700, color: B.white, lineHeight: 1.4, marginBottom: 8 }}>{c.wall}</div>
+                <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6, marginBottom: 14 }}>{c.problem}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: c.color, marginBottom: 6 }}>BURST</div>
+                <div style={{ fontSize: 11, color: B.text, lineHeight: 1.6 }}>{c.fix}</div>
+              </GlassCard>
+            </FI>
+          ))}
+        </div>
       </Sl>
 
       {/* 10: ADOPTION */}
@@ -1111,25 +1193,10 @@ export default function Deck() {
 
       {/* 12: FRAUD */}
       <Sl i={12}>
-        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: m ? 20 : 40, maxWidth: 760, width: "100%", alignItems: "center", textAlign: "left" }}>
-          <div>
-            <FI><Tag>Protocol-level justice</Tag></FI>
-            <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 6 }}>Fraud is caught</h2></FI>
-            <FI d={200}><h2 style={{ ...H(38), color: B.green, marginBottom: 20, textShadow: `0 0 40px ${B.green}22` }}>and surgically removed</h2></FI>
-            <FI d={350}><p style={{ ...P, marginBottom: 16 }}>
-              Anyone can challenge a wallet by staking BRN. VRF-selected verifiers vote independently. If fraud is confirmed, the protocol walks a forward-indexed merger graph from every TRST origin that wallet created.
-            </p></FI>
-            <FI d={450}><p style={{ ...P, marginBottom: 16 }}>
-              Tokens that were merged with clean money get proportionally split — only the tainted fraction is revoked. Alice mixed 50 fraudulent with 50 clean? She keeps her 50. Bob received part of Alice's merge? Only the tainted portion of his share is removed.
-            </p></FI>
-            <FI d={550}><div style={{ fontSize: 12, color: B.text, lineHeight: 2 }}>
-              <span style={{ color: B.orange, fontWeight: 700 }}>Bitcoin</span> can trace but can't revoke — stolen coins stay spent.<br />
-              <span style={{ color: B.blue, fontWeight: 700 }}>Ethereum</span> can freeze addresses but can't split mixed balances.<br />
-              <span style={{ color: B.green, fontWeight: 800 }}>BURST</span> revokes exactly the tainted fraction, O(k) forward, in one pass.
-            </div></FI>
-          </div>
-          <FI d={500}><FraudViz active={s === 12} mobile={m} /></FI>
-        </div>
+        <FI><Tag>Protocol-level justice</Tag></FI>
+        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>Fraud is caught and surgically removed.</h2></FI>
+        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>Stake BRN to challenge. Only the tainted fraction is revoked. Clean money stays.</p></FI>
+        <FI d={400}><FraudViz active={s === 12} mobile={m} /></FI>
       </Sl>
 
       {/* 13: GOVERNANCE */}
@@ -1145,10 +1212,10 @@ export default function Deck() {
                 { phase: "Cooldown", detail: "Community discussion. No voting. Just thinking.", color: B.muted },
                 { phase: "Promote", detail: "Second vote: should we activate? 80% supermajority required.", color: B.green },
               ].map((p, i) => (
-                <div key={i} style={{ padding: "14px 16px", background: "rgba(12,15,22,0.85)", borderRadius: 10, borderLeft: `3px solid ${p.color}` }}>
+                <GlassCard key={i} accent={p.color} style={{ padding: "14px 16px", borderLeft: `3px solid ${p.color}` }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: p.color, marginBottom: 4 }}>{p.phase}</div>
                   <div style={{ fontSize: 11, color: B.text, lineHeight: 1.6 }}>{p.detail}</div>
-                </div>
+                </GlassCard>
               ))}
             </div>
           </FI>
@@ -1162,8 +1229,7 @@ export default function Deck() {
             </GlassCard>
           </FI>
           <FI d={500}><p style={{ fontSize: 11, color: B.muted, textAlign: "center", lineHeight: 1.6 }}>
-            Constitutional amendments require 90% supermajority. Emergency proposals: 95% + 24h fast-track.<br />
-            Changing the threshold itself requires the current threshold or 85%, whichever is higher.
+            Constitutional amendments: 90% supermajority. Emergency fast-track: 95% + 24h.
           </p></FI>
         </div>
       </Sl>
@@ -1171,25 +1237,22 @@ export default function Deck() {
       {/* 14: CONSENSUS */}
       <Sl i={14}>
         <FI><Tag>How blocks confirm</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Open Representative Voting. No mining. No staking lottery.</h2></FI>
-        <div style={{ maxWidth: 600, width: "100%", textAlign: "left" }}>
-          <FI d={200}><div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 16 }}>
-            {[
-              { n: "Block lattice", d: "Each account is its own blockchain. Send and receive are separate blocks. No global bottleneck.", color: B.green },
-              { n: "Representatives", d: "Delegate your voting weight to trusted reps. They vote on your behalf, asynchronously.", color: B.blue },
-              { n: "67% quorum", d: "A block is confirmed when representatives holding 67% of online weight agree.", color: B.orange },
-              { n: "< 1 second", d: "No block interval. No mempool. Transaction publishes, reps vote, done.", color: B.green },
-            ].map((c, i) => (
-              <div key={i} style={{ padding: "16px 18px", background: "rgba(12,15,22,0.85)", borderRadius: 10, borderTop: `3px solid ${c.color}` }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: c.color, marginBottom: 6 }}>{c.n}</div>
-                <div style={{ fontSize: 11, color: B.text, lineHeight: 1.65 }}>{c.d}</div>
-              </div>
-            ))}
-          </div></FI>
-          <FI d={400}><p style={{ fontSize: 11, color: B.muted, textAlign: "center", lineHeight: 1.6 }}>
-            Minimum online weight floor: 60M TRST (prevents quorum collapse). Principal reps: ≥ 0.1% of online weight.<br />
-            Weight tracked via EMA with 95% decay — temporary dips don't break consensus.
-          </p></FI>
+        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>Open Representative Voting.</h2></FI>
+        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>No mining. No staking lottery. Sub-second finality.</p></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, maxWidth: 600, width: "100%", textAlign: "left" }}>
+          {[
+            { n: "Block lattice", d: "Each account is its own chain. No global bottleneck.", color: B.green },
+            { n: "Representatives", d: "Delegate voting weight to trusted reps. Asynchronous.", color: B.blue },
+            { n: "67% quorum", d: "Confirmed when 67% of online weight agrees.", color: B.orange },
+            { n: "< 1 second", d: "No mempool. Publish, vote, done.", color: B.green },
+          ].map((c, i) => (
+            <FI key={i} d={300 + i * 100}>
+              <GlassCard accent={c.color} style={{ padding: "16px 18px", height: "100%", borderLeft: `3px solid ${c.color}` }}>
+                <div style={{ fontSize: m ? 13 : 14, fontWeight: 700, color: c.color, marginBottom: 6 }}>{c.n}</div>
+                <div style={{ fontSize: 11, color: B.text, lineHeight: 1.6 }}>{c.d}</div>
+              </GlassCard>
+            </FI>
+          ))}
         </div>
       </Sl>
 
@@ -1235,14 +1298,30 @@ export default function Deck() {
       <Sl i={16}>
         <FI><Tag>Where we are</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>Built, running, open.</h2></FI>
-        {/* Progress bar */}
-        <FI d={180}><div style={{ maxWidth: 600, width: "100%", marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: B.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
-            <span>Protocol</span><span>Testnet</span><span>Wallet</span><span>Pilots</span><span>Mainnet</span>
-          </div>
-          <div style={{ height: 6, background: `${B.dim}15`, borderRadius: 3, overflow: "hidden", position: "relative" }}>
-            <div style={{ height: "100%", width: "45%", borderRadius: 3, background: `linear-gradient(90deg, ${B.green}, ${B.orange})`, boxShadow: `0 0 12px ${B.green}33` }} />
-          </div>
+        {/* Step indicators */}
+        <FI d={180}><div style={{ display: "flex", alignItems: "center", gap: 0, maxWidth: m ? 320 : 520, width: "100%", marginBottom: 24 }}>
+          {[
+            { l: "Protocol", c: B.green, done: true },
+            { l: "Testnet", c: B.green, done: true },
+            { l: "Wallet", c: B.orange, done: false },
+            { l: "Pilots", c: B.blue, done: false },
+            { l: "Mainnet", c: B.muted, done: false },
+          ].map((s_, i, arr) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", flex: 1 }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <div style={{
+                  width: m ? 10 : 12, height: m ? 10 : 12, borderRadius: "50%",
+                  background: s_.done ? s_.c : "transparent",
+                  border: s_.done ? `2px solid ${s_.c}` : `2px solid ${s_.c}44`,
+                  boxShadow: s_.done ? `0 0 8px ${s_.c}44` : "none",
+                }} />
+                <span style={{ fontSize: m ? 8 : 9, fontWeight: 600, color: s_.done ? s_.c : B.muted, textTransform: "uppercase", letterSpacing: 1 }}>{s_.l}</span>
+              </div>
+              {i < arr.length - 1 && (
+                <div style={{ flex: 1, height: 2, marginLeft: 4, marginRight: 4, marginBottom: 16, borderRadius: 1, background: s_.done && arr[i + 1].done ? s_.c : `${B.dim}22` }} />
+              )}
+            </div>
+          ))}
         </div></FI>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr 1fr", gap: 12, maxWidth: 680, width: "100%", textAlign: "left" }}>
           {[
@@ -1279,55 +1358,73 @@ export default function Deck() {
       <Sl i={17}>
         <FI><Tag>Who's building this</Tag></FI>
         <FI d={100}><h2 style={{ ...H(38), color: B.white, marginBottom: 24 }}>One builder. Open-source. MIT license.</h2></FI>
-        <FI d={200}><div style={{ maxWidth: 500, width: "100%", textAlign: "center" }}>
+        <FI d={200}><div style={{ maxWidth: 540, width: "100%", textAlign: "center" }}>
           <GlassCard accent={B.green} style={{ padding: "28px 24px", marginBottom: 16 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: B.white, marginBottom: 6 }}>Nitesh</div>
             <div style={{ fontSize: 12, color: B.green, fontWeight: 600, marginBottom: 14 }}>Protocol designer & sole developer</div>
-            <div style={{ fontSize: 12, color: B.text, lineHeight: 1.7 }}>
-              Full-stack Rust implementation: consensus, block lattice, BRN/TRST economics, merger graph, governance engine, verification orchestrator, node infrastructure, deploy tooling.
+            <div style={{ fontSize: 12, color: B.text, lineHeight: 1.7, marginBottom: 16 }}>
+              Full-stack Rust implementation: consensus, block lattice, BRN/TRST economics, merger graph, governance engine, verification orchestrator, node infrastructure.
+            </div>
+            <div style={{ display: "flex", gap: m ? 10 : 16, justifyContent: "center", flexWrap: "wrap" }}>
+              {[
+                { n: "Rust", v: "100%", c: B.orange },
+                { n: "MIT", v: "Licensed", c: B.blue },
+                { n: "Repos", v: "4", c: B.green },
+                { n: "Solo", v: "since day 1", c: B.green },
+              ].map((st, i) => (
+                <div key={i} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: st.c, fontFamily: "'JetBrains Mono', monospace" }}>{st.v}</div>
+                  <div style={{ fontSize: 9, color: B.muted, textTransform: "uppercase", letterSpacing: 1, marginTop: 2 }}>{st.n}</div>
+                </div>
+              ))}
             </div>
           </GlassCard>
         </div></FI>
-        <FI d={350}><div style={{ maxWidth: 500, width: "100%", textAlign: "left" }}>
-          <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12 }}>
-            {[
-              { label: "No token sale", detail: "No ICO. No pre-mine. No founder allocation.", color: B.green },
-              { label: "No VC funding", detail: "No cap table. No board. No one to answer to except the protocol.", color: B.orange },
-              { label: "Fully open source", detail: "Every line of code. MIT licensed. Fork it if you want.", color: B.blue },
-              { label: "Looking for", detail: "Co-builders who believe money can be redesigned from first principles.", color: B.green },
-            ].map((c, i) => (
-              <div key={i} style={{ padding: "12px 14px", background: "rgba(12,15,22,0.85)", borderRadius: 10, borderLeft: `2px solid ${c.color}44` }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: c.color, marginBottom: 4 }}>{c.label}</div>
-                <div style={{ fontSize: 11, color: B.text, lineHeight: 1.5 }}>{c.detail}</div>
-              </div>
-            ))}
-          </div>
+        <FI d={400}><div style={{ display: "flex", gap: m ? 8 : 12, justifyContent: "center", flexWrap: "wrap", maxWidth: 540 }}>
+          {[
+            { label: "No token sale", color: B.green },
+            { label: "No VC funding", color: B.orange },
+            { label: "No pre-mine", color: B.blue },
+            { label: "Fork it if you want", color: B.muted },
+          ].map((c, i) => (
+            <span key={i} style={{
+              fontSize: 10, fontWeight: 700, padding: "6px 14px", borderRadius: 8,
+              background: `${c.color}08`, border: `1px solid ${c.color}22`, color: c.color,
+            }}>{c.label}</span>
+          ))}
         </div></FI>
       </Sl>
 
-      {/* 18: THE ASK */}
+      {/* 18: JOIN THE BUILD */}
       <Sl i={18}>
         <FI><Tag>Join the build</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(40), color: B.white, marginBottom: 28 }}>What BURST needs</h2></FI>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14, maxWidth: 680, width: "100%", textAlign: "left" }}>
+        <FI d={100}><h2 style={{ ...H(36), color: B.white, marginBottom: 6 }}>What BURST needs</h2></FI>
+        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>No token sale. No VC. Just people who want to build it.</p></FI>
+        <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, maxWidth: 580, width: "100%", textAlign: "left" }}>
           {[
             { icon: "🖥️", title: "Node operators", desc: "A modest VPS is enough. You're powering the economic floor for 8 billion people.", color: B.green },
-            { icon: "🛠️", title: "Developers", desc: "Open-source Rust, MIT. DAG engine, wallet UX, verification modules to build.", color: B.blue },
-            { icon: "🌍", title: "Communities", desc: "Groups willing to pilot BURST locally. Choose your own parameters.", color: B.orange },
+            { icon: "🛠️", title: "Developers", desc: "Open-source Rust, MIT licensed. DAG engine, wallet UX, verification modules to build.", color: B.blue },
+            { icon: "🌍", title: "Communities", desc: "Groups willing to pilot BURST locally. Choose your own r and e.", color: B.orange },
             { icon: "📣", title: "Voices", desc: "People who get it and can explain it. The hardest part is the assumption.", color: B.green },
           ].map((a, i) => (
-            <FI key={i} d={200 + i * 100}>
-              <GlassCard accent={a.color} style={{
-                padding: "24px 22px", borderLeft: `3px solid ${a.color}`,
-                height: "100%", display: "flex", flexDirection: "column",
-              }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>{a.icon}</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: a.color, marginBottom: 8 }}>{a.title}</div>
-                <div style={{ fontSize: 13, color: B.text, lineHeight: 1.7, flex: 1 }}>{a.desc}</div>
+            <FI key={i} d={300 + i * 100}>
+              <GlassCard accent={a.color} style={{ padding: "18px 20px", height: "100%", borderLeft: `3px solid ${a.color}` }}>
+                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: a.color, marginBottom: 6 }}>{a.icon}</div>
+                <div style={{ fontSize: m ? 13 : 14, fontWeight: 700, color: B.white, lineHeight: 1.4, marginBottom: 8 }}>{a.title}</div>
+                <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>{a.desc}</div>
               </GlassCard>
             </FI>
           ))}
         </div>
+        <FI d={750}><div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", fontSize: 12, marginTop: 20 }}>
+          <span style={{
+            color: B.green, fontWeight: 700, padding: "10px 20px", borderRadius: 20,
+            background: `linear-gradient(135deg, ${B.green}12, ${B.green}08)`,
+            border: `1px solid ${B.green}33`, animation: "glowPulse 3s infinite",
+          }}>github.com/BURST-UBI</span>
+          <span style={{ color: B.gray, background: B.s, padding: "10px 20px", borderRadius: 20, border: `1px solid ${B.dim}22` }}>brst.cc</span>
+          <span style={{ color: B.gray, background: B.s, padding: "10px 20px", borderRadius: 20, border: `1px solid ${B.dim}22` }}>Discord</span>
+        </div></FI>
       </Sl>
 
       {/* 19: CLOSING */}
@@ -1340,16 +1437,7 @@ export default function Deck() {
           <FI d={600}><p style={{ fontSize: "clamp(14px, 1.3vw, 17px)", color: B.text, lineHeight: 1.85, fontStyle: "italic", maxWidth: 500, margin: "0 auto 44px" }}>
             BURST doesn't pick an answer. It builds the infrastructure where humanity can answer that question for itself.
           </p></FI>
-          <FI d={850}><div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", fontSize: 12, marginBottom: 28 }}>
-            <span style={{
-              color: B.green, fontWeight: 700, padding: "12px 24px", borderRadius: 24,
-              background: `linear-gradient(135deg, ${B.green}12, ${B.green}08)`,
-              border: `1px solid ${B.green}33`, animation: "glowPulse 3s infinite",
-            }}>github.com/BURST-UBI</span>
-            <span style={{ color: B.gray, background: B.s, padding: "12px 24px", borderRadius: 24, border: `1px solid ${B.dim}22` }}>brst.cc</span>
-            <span style={{ color: B.gray, background: B.s, padding: "12px 24px", borderRadius: 24, border: `1px solid ${B.dim}22` }}>Discord</span>
-          </div></FI>
-          <FI d={1050}><div>
+          <FI d={900}><div>
             <p style={{ fontSize: 11, color: B.muted }}>MIT License. No token sale. No pre-mine. No founder allocation.</p>
             <p style={{ fontSize: 12, color: B.gray, marginTop: 8, fontWeight: 600 }}>One person, one wallet, one vote.</p>
             <p style={{ fontSize: 11, color: B.muted, marginTop: 20, fontStyle: "italic" }}>For Eliesh.</p>
@@ -1382,7 +1470,7 @@ export default function Deck() {
       <div style={{ position: "absolute", bottom: 16, right: m ? 16 : 24, fontSize: 10, color: `${B.muted}77`, fontFamily: "'JetBrains Mono', monospace", zIndex: 10 }}>
         {String(s + 1).padStart(2, "0")}/{TOTAL}
       </div>
-      <div style={{ position: "absolute", bottom: 16, left: m ? 16 : 24, fontSize: 10, color: `${B.muted}44`, zIndex: 10 }}>
+      <div style={{ position: "absolute", bottom: 16, left: m ? 16 : 24, fontSize: 10, color: `${B.muted}44`, zIndex: 10, transition: "opacity .3s", opacity: s === 0 ? 0 : 1 }}>
         {m ? "swipe to navigate" : "← → or click · ? for menu"}
       </div>
 
@@ -1429,12 +1517,14 @@ export default function Deck() {
                 onClick={(e) => { e.stopPropagation(); setS(i); setHp(0); setMenu(false); }}
                 style={{
                   display: "flex", alignItems: "center", gap: 10,
-                  padding: "10px 14px", borderRadius: 8, border: "none", cursor: "pointer",
-                  background: s === i ? `${B.green}18` : "rgba(12,15,22,0.6)",
+                  padding: "10px 14px", borderRadius: 12, cursor: "pointer",
+                  background: s === i ? `linear-gradient(135deg, ${B.green}15, ${B.green}08)` : "linear-gradient(135deg, rgba(18,22,32,0.5), rgba(12,15,22,0.7))",
+                  border: s === i ? `1px solid ${B.green}33` : `1px solid ${B.dim}15`,
+                  backdropFilter: "blur(12px)",
                   transition: "all .2s", textAlign: "left",
                 }}
-                onMouseEnter={(e) => { if (s !== i) e.currentTarget.style.background = `${B.dim}22`; }}
-                onMouseLeave={(e) => { if (s !== i) e.currentTarget.style.background = "rgba(12,15,22,0.6)"; }}
+                onMouseEnter={(e) => { if (s !== i) { e.currentTarget.style.background = `${B.dim}18`; e.currentTarget.style.borderColor = `${B.dim}33`; } }}
+                onMouseLeave={(e) => { if (s !== i) { e.currentTarget.style.background = "linear-gradient(135deg, rgba(18,22,32,0.5), rgba(12,15,22,0.7))"; e.currentTarget.style.borderColor = `${B.dim}15`; } }}
               >
                 <span style={{
                   fontSize: 10, fontWeight: 700, color: s === i ? B.green : B.muted,
@@ -1445,6 +1535,97 @@ export default function Deck() {
             ))}
           </div>
           <div style={{ fontSize: 10, color: B.muted, marginTop: 16 }}>{m ? "Tap a slide" : "Press ? or Esc to close"}</div>
+        </div>
+      )}
+
+      {/* Admin login modal */}
+      {sync.showLogin && (
+        <div
+          onClick={(e) => { e.stopPropagation(); sync.setShowLogin(false); sync.setLoginError(false); }}
+          style={{
+            position: "absolute", inset: 0, zIndex: 50,
+            background: "rgba(5,7,11,0.92)", backdropFilter: "blur(20px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            animation: "fadeIn .25s both",
+          }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "linear-gradient(135deg, rgba(18,22,32,0.9), rgba(12,15,22,0.95))",
+            border: `1px solid ${B.dim}33`, borderRadius: 18, padding: "32px 28px",
+            backdropFilter: "blur(20px)", maxWidth: 340, width: "100%", textAlign: "center",
+          }}>
+            <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 3, color: B.green, marginBottom: 12, fontFamily: "'JetBrains Mono', monospace" }}>Presenter mode</div>
+            <div style={{ fontSize: 14, color: B.white, fontWeight: 600, marginBottom: 20 }}>Enter admin key</div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const key = e.target.elements.adminKey.value;
+              if (key) sync.login(key);
+            }}>
+              <input
+                name="adminKey"
+                type="password"
+                autoFocus
+                placeholder="Admin key..."
+                style={{
+                  width: "100%", padding: "12px 16px", borderRadius: 10, border: `1px solid ${sync.loginError ? B.red : B.dim}33`,
+                  background: "rgba(5,7,11,0.6)", color: B.white, fontSize: 14, outline: "none",
+                  fontFamily: "'JetBrains Mono', monospace", marginBottom: 12,
+                  transition: "border-color .2s",
+                }}
+                onFocus={(e) => { if (!sync.loginError) e.target.style.borderColor = B.green + "66"; }}
+                onBlur={(e) => { e.target.style.borderColor = (sync.loginError ? B.red : B.dim) + "33"; }}
+              />
+              {sync.loginError && <div style={{ fontSize: 11, color: B.red, marginBottom: 8 }}>Wrong key</div>}
+              <button type="submit" style={{
+                width: "100%", padding: "10px", borderRadius: 10, border: "none", cursor: "pointer",
+                background: `linear-gradient(135deg, ${B.green}, ${B.greenDark})`, color: B.bg,
+                fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase",
+              }}>Connect</button>
+            </form>
+            <div style={{ fontSize: 10, color: B.muted, marginTop: 12 }}>Ctrl+Shift+A to open</div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin badge */}
+      {sync.isAdmin && (
+        <div style={{
+          position: "absolute", top: m ? 12 : 16, left: m ? 12 : 20, zIndex: 30,
+          padding: "5px 12px", borderRadius: 8,
+          background: `${B.green}15`, border: `1px solid ${B.green}33`,
+          fontSize: 10, fontWeight: 700, color: B.green, letterSpacing: 1,
+          fontFamily: "'JetBrains Mono', monospace",
+        }}>PRESENTING</div>
+      )}
+
+      {/* Follower LIVE badge + rejoin */}
+      {!sync.isAdmin && sync.remoteSlide != null && (
+        <div style={{
+          position: "absolute", top: m ? 12 : 16, left: m ? 12 : 20, zIndex: 30,
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          {sync.following ? (
+            <div style={{
+              padding: "5px 12px", borderRadius: 8,
+              background: `${B.red}15`, border: `1px solid ${B.red}33`,
+              fontSize: 10, fontWeight: 700, color: B.red, letterSpacing: 1,
+              fontFamily: "'JetBrains Mono', monospace",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: B.red, animation: "pulse 1.5s infinite" }} />
+              LIVE
+            </div>
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); sync.setFollowing(true); }}
+              style={{
+                padding: "5px 12px", borderRadius: 8, cursor: "pointer",
+                background: `${B.dim}15`, border: `1px solid ${B.dim}33`,
+                fontSize: 10, fontWeight: 700, color: B.muted, letterSpacing: 1,
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >FOLLOW PRESENTER</button>
+          )}
         </div>
       )}
     </div>
