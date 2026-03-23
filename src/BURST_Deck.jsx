@@ -974,40 +974,31 @@ export default function Deck() {
 
       {/* 3: AI ACCELERATION */}
       <Sl i={3}>
-        <FI><Tag color={B.orange}>It's about to get worse</Tag></FI>
-        <FI d={100}><h2 style={{ ...H(m ? 30 : 40), color: B.white, marginBottom: 20 }}>Your job is next.</h2></FI>
+        <FI><Tag color={B.orange}>The accelerant</Tag></FI>
+        <FI d={100}><h2 style={{ ...H(m ? 30 : 40), color: B.white, marginBottom: 6 }}>AI is making this urgent.</h2></FI>
+        <FI d={200}><p style={{ ...P, marginBottom: m ? 16 : 24, textAlign: "center" }}>Not because it will destroy all jobs. Because of where the money goes when it does.</p></FI>
         <div style={{ maxWidth: 620, width: "100%", textAlign: "left" }}>
-          <FI d={250}><div style={{ marginBottom: 20 }}>
-            {[
-              { job: "Translators", status: "Already replaced", color: B.red },
-              { job: "Customer support", status: "Being replaced", color: B.orange },
-              { job: "Junior developers", status: "Being replaced", color: B.orange },
-              { job: "Designers", status: "Being replaced", color: B.orange },
-              { job: "Accountants", status: "Next", color: B.gold },
-              { job: "Lawyers", status: "Next", color: B.gold },
-              { job: "Doctors", status: "Soon", color: B.muted },
-            ].map((r, i) => (
-              <div key={i} style={{
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-                padding: "8px 16px", borderRadius: 8, marginBottom: 4,
-                background: i % 2 === 0 ? `${B.dim}08` : "transparent",
-              }}>
-                <span style={{ fontSize: m ? 12 : 13, color: B.text }}>{r.job}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, color: r.color, fontFamily: "'JetBrains Mono', monospace", textTransform: "uppercase", letterSpacing: 1 }}>{r.status}</span>
-              </div>
-            ))}
+          <FI d={350}><div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 16 }}>
+            <GlassCard accent={B.orange} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.orange}` }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: B.orange, fontFamily: "'JetBrains Mono', monospace" }}>14%</div>
+              <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6, marginTop: 6 }}>of companies have already cut headcount due to AI (ResumeBuilder, 2024)</div>
+            </GlassCard>
+            <GlassCard accent={B.red} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.red}` }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: B.red, fontFamily: "'JetBrains Mono', monospace" }}>300M</div>
+              <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6, marginTop: 6 }}>jobs exposed to AI automation globally (Goldman Sachs, 2023)</div>
+            </GlassCard>
           </div></FI>
           <FI d={500}>
             <GlassCard accent={B.red} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.red}`, marginBottom: 12 }}>
               <div style={{ fontSize: m ? 12 : 13, color: B.text, lineHeight: 1.7 }}>
-                When one AI replaces 10,000 workers, the profit goes to shareholders. <span style={{ color: B.red, fontWeight: 700 }}>You get a LinkedIn notification.</span>
+                When AI makes a company 10x more productive, the stock price goes up. <span style={{ color: B.red, fontWeight: 700 }}>The displaced workers don't get a share of that.</span>
               </div>
             </GlassCard>
           </FI>
           <FI d={650}>
             <GlassCard accent={B.green} style={{ padding: "16px 20px", borderLeft: `3px solid ${B.green}` }}>
               <div style={{ fontSize: m ? 12 : 13, color: B.text, lineHeight: 1.7 }}>
-                Tax-funded UBI requires politicians to vote against their donors. <span style={{ color: B.green, fontWeight: 700 }}>BURST doesn't ask permission. The floor is built into the protocol.</span>
+                Tax-funded safety nets require political will that shrinks as the tax base shrinks. <span style={{ color: B.green, fontWeight: 700 }}>BURST doesn't depend on anyone's generosity. The floor is protocol-level.</span>
               </div>
             </GlassCard>
           </FI>
