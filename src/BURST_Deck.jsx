@@ -391,14 +391,16 @@ function Spectrum({ active, mobile }) {
       {/* Real-world anchor */}
       <div style={{ textAlign: "center", marginTop: 16, padding: "12px 16px", background: `${B.dim}08`, borderRadius: 10, transition: "all .4s" }}>
         <div style={{ fontSize: 12, color: B.text, lineHeight: 1.7 }}>
-          {r > 0 ? (
+          {r === 0 && e > 80 ? (
+            <span style={{ color: B.muted }}>This is the world today. No floor. No ceiling. Drag the income knob to change it.</span>
+          ) : r === 0 && e <= 80 ? (
+            <span style={{ color: B.muted }}>No income, but wealth expires after <span style={{ color: B.green, fontWeight: 700 }}>{eLabel}</span>. Punishes saving without helping anyone.</span>
+          ) : (
             <>At <span style={{ color: B.orange, fontWeight: 700 }}>r={r}%</span>{e <= 90 ? <>, <span style={{ color: B.green, fontWeight: 700 }}>e={eLabel}</span></> : null}:&nbsp;
             {r >= 50 ? "A garment worker in Bangladesh gets a floor of " : r >= 20 ? "A subsistence farmer in the DRC gets a floor of " : "A brick kiln worker in India gets a floor of "}
             <span style={{ color: B.orange, fontWeight: 700 }}>€{(r * 0.46).toFixed(0)}/day</span>.
             {e <= 70 ? <> A billionaire's TRST decays <span style={{ color: B.blue, fontWeight: 700 }}>{(100 / Math.max(e, 1)).toFixed(1)}%/year</span>.</> : null}
             </>
-          ) : (
-            <span style={{ color: B.muted }}>This is the world today. No floor. No ceiling. Drag the income knob to change it.</span>
           )}
         </div>
       </div>
