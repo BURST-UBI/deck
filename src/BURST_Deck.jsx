@@ -670,6 +670,7 @@ const SLIDE_TITLES = [
 function usePresenterSync() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [following, setFollowing] = useState(false);
+  const [presenterLive, setPresenterLive] = useState(false);
   const [remoteSlide, setRemoteSlide] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [loginError, setLoginError] = useState(false);
@@ -688,12 +689,18 @@ function usePresenterSync() {
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
         if (msg.type === "sync") setRemoteSlide(msg.slide);
+        if (msg.type === "presence") {
+          setPresenterLive(msg.live);
+          if (!msg.live) setFollowing(false);
+        }
         if (msg.type === "auth") {
           if (msg.ok) { setIsAdmin(true); setShowLogin(false); setLoginError(false); }
           else setLoginError(true);
         }
       };
       ws.onclose = () => {
+        setPresenterLive(false);
+        setFollowing(false);
         reconnectRef.current = setTimeout(connect, 3000);
       };
       ws.onerror = () => ws.close();
@@ -720,7 +727,7 @@ function usePresenterSync() {
     }
   }, [isAdmin]);
 
-  return { isAdmin, following, setFollowing, remoteSlide, showLogin, setShowLogin, login, loginError, setLoginError, pushSlide };
+  return { isAdmin, following, setFollowing, presenterLive, remoteSlide, showLogin, setShowLogin, login, loginError, setLoginError, pushSlide };
 }
 
 export default function Deck() {
@@ -740,18 +747,18 @@ export default function Deck() {
 
   // Follower: auto-navigate when remote slide changes
   useEffect(() => {
-    if (!sync.isAdmin && sync.following && sync.remoteSlide != null) {
+    if (!sync.isAdmin && sync.following && sync.presenterLive && sync.remoteSlide != null) {
       setS(sync.remoteSlide);
       setHp(0);
     }
-  }, [sync.remoteSlide, sync.following, sync.isAdmin]);
+  }, [sync.remoteSlide, sync.following, sync.isAdmin, sync.presenterLive]);
 
-  // Auto-follow on first sync if not admin
+  // Auto-follow when presenter goes live
   useEffect(() => {
-    if (!sync.isAdmin && sync.remoteSlide != null && !sync.following) {
+    if (!sync.isAdmin && sync.presenterLive) {
       sync.setFollowing(true);
     }
-  }, [sync.remoteSlide]);
+  }, [sync.presenterLive]);
 
   const next = useCallback(() => {
     if (s === 1 && hp < 1) { setHp((p) => p + 1); return; }
@@ -1599,7 +1606,7 @@ export default function Deck() {
       )}
 
       {/* Follower LIVE badge + rejoin */}
-      {!sync.isAdmin && sync.remoteSlide != null && (
+      {!sync.isAdmin && sync.presenterLive && (
         <div style={{
           position: "absolute", top: m ? 12 : 16, left: m ? 12 : 20, zIndex: 30,
           display: "flex", alignItems: "center", gap: 8,

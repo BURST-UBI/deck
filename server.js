@@ -46,13 +46,31 @@ const server = createServer((req, res) => {
 
 // WebSocket on same server
 let currentSlide = 0;
+let adminConnected = false;
 const clients = new Set();
 const wss = new WebSocketServer({ server });
+
+function hasAdmin() {
+  for (const c of clients) if (c.isAdmin) return true;
+  return false;
+}
+
+function broadcastPresence(live) {
+  for (const c of clients) {
+    if (!c.isAdmin && c.readyState === 1) {
+      c.send(JSON.stringify({ type: "presence", live }));
+    }
+  }
+}
 
 wss.on("connection", (ws) => {
   clients.add(ws);
   ws.isAdmin = false;
-  ws.send(JSON.stringify({ type: "sync", slide: currentSlide }));
+
+  // Only tell client about presenter if admin is actually connected
+  const live = hasAdmin();
+  ws.send(JSON.stringify({ type: "presence", live }));
+  if (live) ws.send(JSON.stringify({ type: "sync", slide: currentSlide }));
 
   ws.on("message", (raw) => {
     let msg;
@@ -62,6 +80,7 @@ wss.on("connection", (ws) => {
       if (msg.key === ADMIN_KEY) {
         ws.isAdmin = true;
         ws.send(JSON.stringify({ type: "auth", ok: true }));
+        broadcastPresence(true);
       } else {
         ws.send(JSON.stringify({ type: "auth", ok: false }));
       }
@@ -78,7 +97,11 @@ wss.on("connection", (ws) => {
     }
   });
 
-  ws.on("close", () => clients.delete(ws));
+  ws.on("close", () => {
+    const wasAdmin = ws.isAdmin;
+    clients.delete(ws);
+    if (wasAdmin) broadcastPresence(hasAdmin());
+  });
 });
 
 server.listen(PORT, () => {
