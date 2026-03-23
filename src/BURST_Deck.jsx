@@ -826,7 +826,7 @@ export default function Deck() {
         overflowX: "hidden",
         WebkitOverflowScrolling: "touch",
       }}>
-        {active && children}
+        {(active || Math.abs(s - i) <= 1) && children}
       </div>
     );
   };
@@ -978,9 +978,9 @@ export default function Deck() {
         <FI d={100}><h2 style={{ ...H(m ? 30 : 40), color: B.white, marginBottom: 24 }}>AI will generate unprecedented wealth.<br /><span style={{ color: B.orange }}>Almost none of it will reach you.</span></h2></FI>
         <div style={{ display: "grid", gridTemplateColumns: m ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 12, maxWidth: 640, width: "100%", marginBottom: 20 }}>
           {[
-            { n: "300M", l: "jobs exposed", src: "Goldman Sachs", c: B.red },
-            { n: "14%", l: "of firms already cut staff", src: "ResumeBuilder", c: B.orange },
-            { n: "72%", l: "of gains go to top 10%", src: "WID, 2024", c: B.gold },
+            { n: "300M", l: "jobs exposed", src: "Goldman Sachs, Mar 2023", c: B.red },
+            { n: "14%", l: "of firms already cut staff", src: "ResumeBuilder, Feb 2024", c: B.orange },
+            { n: "72%", l: "of gains go to top 10%", src: "World Inequality Database", c: B.gold },
             { n: "0%", l: "went to a new safety net", src: "", c: B.muted },
           ].map((s_, i) => (
             <FI key={i} d={250 + i * 100}>
@@ -992,11 +992,11 @@ export default function Deck() {
             </FI>
           ))}
         </div>
-        <FI d={700}><div style={{ maxWidth: 540, width: "100%", textAlign: "left" }}>
-          <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "auto 1fr", gap: 12 }}>
+        <FI d={700}><div style={{ maxWidth: 640, width: "100%", textAlign: "left" }}>
+          <div style={{ display: "grid", gridTemplateColumns: m ? "1fr" : "1fr 1fr", gap: 12 }}>
             <GlassCard accent={B.red} style={{ padding: "14px 18px", borderLeft: `3px solid ${B.red}` }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: B.red, fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>WHY NOT GOVERNMENT?</div>
-              <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>Finland tried UBI. Cancelled after 2 years. Spain's minimum income missed 80% of targets. Every program depends on the next election cycle.</div>
+              <div style={{ fontSize: 11, color: B.gray, lineHeight: 1.6 }}>Finland's basic income experiment ran 2017–2018, not renewed. Spain's Ingreso Mínimo Vital reached only 20% of targets (AIReF, 2022). Every program depends on the next election.</div>
             </GlassCard>
             <GlassCard accent={B.green} style={{ padding: "14px 18px", borderLeft: `3px solid ${B.green}` }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: B.green, fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>WHY PROTOCOL?</div>
