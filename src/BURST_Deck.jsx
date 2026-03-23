@@ -298,11 +298,11 @@ function Spectrum({ active, mobile }) {
   useEffect(() => { if (!active) { setR(0); setE(100); } }, [active]);
 
   const model = useMemo(() => {
-    if (r < 8 && e > 80) return { name: "Normal money", desc: "This is where we are. No universal income. No expiry. You start at zero. Wealth compounds at the top. The bottom stays empty.", color: B.muted, emoji: "💰", tag: "THE STATUS QUO" };
+    if (r < 8 && e >= 80) return { name: "Normal money", desc: "This is where we are. No universal income. No expiry. You start at zero. Wealth compounds at the top. The bottom stays empty.", color: B.muted, emoji: "💰", tag: "THE STATUS QUO" };
     if (r < 8) return { name: "Deflationary currency", desc: "Wealth decays but nobody gets income. Punishes hoarding without helping anyone.", color: B.blue, emoji: "📉", tag: "THEORETICAL" };
-    if (e > 80) return { name: "Capitalism + UBI", desc: "Markets still work. Innovation still rewarded. But everyone has a floor. Failure no longer means starvation.", color: B.green, emoji: "🌱", tag: "THE SWEET SPOT" };
-    if (e > 55) return { name: "Balanced economy", desc: "Universal income with moderate wealth cycling. Long-term saving works but extreme hoarding naturally decays.", color: "#4ecdc4", emoji: "⚖️", tag: "SELF-CORRECTING" };
-    if (e > 25) return { name: "Accountability economy", desc: "Currency becomes reputation. Your wealth reflects what you've contributed recently — not what you accumulated decades ago.", color: B.orange, emoji: "🔥", tag: "MERITOCRATIC" };
+    if (e >= 80) return { name: "Capitalism + UBI", desc: "Markets still work. Innovation still rewarded. But everyone has a floor. Failure no longer means starvation.", color: B.green, emoji: "🌱", tag: "THE SWEET SPOT" };
+    if (e >= 55) return { name: "Balanced economy", desc: "Universal income with moderate wealth cycling. Long-term saving works but extreme hoarding naturally decays.", color: "#4ecdc4", emoji: "⚖️", tag: "SELF-CORRECTING" };
+    if (e >= 25) return { name: "Accountability economy", desc: "Currency becomes reputation. Your wealth reflects what you've contributed recently — not what you accumulated decades ago.", color: B.orange, emoji: "🔥", tag: "MERITOCRATIC" };
     return { name: "Pure equality", desc: "TRST expires almost instantly. No transferable wealth. Pure contribution tracking.", color: B.purple, emoji: "🟰", tag: "RADICAL" };
   }, [r, e]);
 
@@ -391,9 +391,9 @@ function Spectrum({ active, mobile }) {
       {/* Real-world anchor */}
       <div style={{ textAlign: "center", marginTop: 16, padding: "12px 16px", background: `${B.dim}08`, borderRadius: 10, transition: "all .4s" }}>
         <div style={{ fontSize: 12, color: B.text, lineHeight: 1.7 }}>
-          {r === 0 && e > 80 ? (
+          {r === 0 && e >= 80 ? (
             <span style={{ color: B.muted }}>This is the world today. No floor. No ceiling. Drag the income knob to change it.</span>
-          ) : r === 0 && e <= 80 ? (
+          ) : r === 0 && e < 80 ? (
             <span style={{ color: B.muted }}>No income, but wealth expires after <span style={{ color: B.green, fontWeight: 700 }}>{eLabel}</span>. Punishes saving without helping anyone.</span>
           ) : (
             <>At <span style={{ color: B.orange, fontWeight: 700 }}>r={r}%</span>{e <= 90 ? <>, <span style={{ color: B.green, fontWeight: 700 }}>e={eLabel}</span></> : null}:&nbsp;
