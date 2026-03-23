@@ -669,16 +669,19 @@ const SLIDE_TITLES = [
 ];
 
 /* --- Sync hook --- */
-function usePresenterSync() {
+function usePresenterSync(onSync) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [following, setFollowing] = useState(false);
   const [presenterLive, setPresenterLive] = useState(false);
-  const [remoteSlide, setRemoteSlide] = useState(null);
-  const [remoteHp, setRemoteHp] = useState(0);
   const [showLogin, setShowLogin] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const wsRef = useRef(null);
   const reconnectRef = useRef(null);
+  const followingRef = useRef(false);
+  const onSyncRef = useRef(onSync);
+  onSyncRef.current = onSync;
+
+  useEffect(() => { followingRef.current = following; }, [following]);
 
   const WS_URL = typeof window !== "undefined"
     ? (window.location.protocol === "https:" ? "wss:" : "ws:") + "//" + window.location.host
@@ -691,7 +694,9 @@ function usePresenterSync() {
       wsRef.current = ws;
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
-        if (msg.type === "sync") { setRemoteSlide(msg.slide); setRemoteHp(msg.hp ?? 0); }
+        if (msg.type === "sync" && followingRef.current) {
+          onSyncRef.current(msg.slide, msg.hp ?? 0);
+        }
         if (msg.type === "presence") {
           setPresenterLive(msg.live);
           if (!msg.live) setFollowing(false);
@@ -730,7 +735,7 @@ function usePresenterSync() {
     }
   }, [isAdmin]);
 
-  return { isAdmin, following, setFollowing, presenterLive, remoteSlide, remoteHp, showLogin, setShowLogin, login, loginError, setLoginError, pushState };
+  return { isAdmin, following, setFollowing, presenterLive, showLogin, setShowLogin, login, loginError, setLoginError, pushState };
 }
 
 export default function Deck() {
@@ -741,22 +746,17 @@ export default function Deck() {
   const TOTAL = 20;
   const touchRef = useRef(null);
 
-  const sync = usePresenterSync();
+  const sync = usePresenterSync(useCallback((slide, hp) => {
+    setS(slide);
+    setHp(hp);
+  }, []));
 
   // Admin: push slide + hp changes to server
   useEffect(() => {
     if (sync.isAdmin) sync.pushState(s, hp);
   }, [s, hp, sync.isAdmin]);
 
-  // Follower: auto-navigate when remote slide/hp changes
-  useEffect(() => {
-    if (!sync.isAdmin && sync.following && sync.presenterLive && sync.remoteSlide != null) {
-      setS(sync.remoteSlide);
-      setHp(sync.remoteHp);
-    }
-  }, [sync.remoteSlide, sync.remoteHp, sync.following, sync.isAdmin, sync.presenterLive]);
-
-  // Auto-follow only when presenter first goes live (not on every sync)
+  // Auto-follow only when presenter first goes live
   const wasLive = useRef(false);
   useEffect(() => {
     if (!sync.isAdmin && sync.presenterLive && !wasLive.current) {
