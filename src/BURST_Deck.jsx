@@ -298,7 +298,7 @@ function Spectrum({ active, mobile }) {
   useEffect(() => { if (!active) { setR(0); setE(100); } }, [active]);
 
   const model = useMemo(() => {
-    if (r < 8 && e > 85) return { name: "Normal money", desc: "This is where we are. No universal income. No expiry. You start at zero. Wealth compounds at the top. The bottom stays empty.", color: B.muted, emoji: "💰", tag: "THE STATUS QUO" };
+    if (r < 8 && e > 80) return { name: "Normal money", desc: "This is where we are. No universal income. No expiry. You start at zero. Wealth compounds at the top. The bottom stays empty.", color: B.muted, emoji: "💰", tag: "THE STATUS QUO" };
     if (r < 8) return { name: "Deflationary currency", desc: "Wealth decays but nobody gets income. Punishes hoarding without helping anyone.", color: B.blue, emoji: "📉", tag: "THEORETICAL" };
     if (e > 80) return { name: "Capitalism + UBI", desc: "Markets still work. Innovation still rewarded. But everyone has a floor. Failure no longer means starvation.", color: B.green, emoji: "🌱", tag: "THE SWEET SPOT" };
     if (e > 55) return { name: "Balanced economy", desc: "Universal income with moderate wealth cycling. Long-term saving works but extreme hoarding naturally decays.", color: "#4ecdc4", emoji: "⚖️", tag: "SELF-CORRECTING" };
